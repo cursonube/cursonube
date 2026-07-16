@@ -1,0 +1,575 @@
+// Cursonube — Prisma schema
+// Fuente de verdad de negocio: docs/03-modelo-de-datos.md (Documento 3)
+//
+// Convenciones (Documento 3, sección 1):
+// - Multi-tenancy: toda tabla de datos de academia tiene tenantId, indexado.
+//   Row-Level Security se agrega vía migración SQL cruda (Documento 2/6) — Prisma
+//   no gestiona RLS declarativamente, ver apps/api/prisma/migrations/ una vez creada.
+// - Claves primarias: UUID v7, generadas en la capa de aplicación (ver
+//   src/common/id/generate-id.ts) — Prisma no genera UUIDv7 nativamente
+//   (su @default(uuid()) es v4), por eso los modelos no declaran @default acá.
+// - Timestamps: createdAt/updatedAt en toda entidad; deletedAt (soft-delete)
+//   solo en las entidades transaccionales/académicas listadas en la decisión M1.
+// - Dinero: entero en centavos + código ISO 4217, nunca float.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.1 Tenancy
+// ─────────────────────────────────────────────────────────────
+
+enum AcademiaEstado {
+  Activa
+  Suspendida
+  Cancelada
+}
+
+enum PlantillaNombre {
+  Creator
+  Academy
+  Business
+  Modern
+  Dark
+}
+
+model Plantilla {
+  id        String          @id @db.Uuid
+  nombre    PlantillaNombre @unique
+  configBase Json           @map("config_base")
+
+  academias Academia[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("plantillas")
+}
+
+model Academia {
+  id                 String         @id @db.Uuid
+  subdominio         String         @unique
+  dominioPropio      String?        @unique @map("dominio_propio")
+  nombre             String
+  plantillaId        String         @map("plantilla_id") @db.Uuid
+  plantilla          Plantilla      @relation(fields: [plantillaId], references: [id])
+  logoUrl            String?        @map("logo_url")
+  colorPrimario      String         @map("color_primario")
+  colorSecundario    String         @map("color_secundario")
+  imagenPrincipalUrl String?        @map("imagen_principal_url")
+  planId             String         @map("plan_id") @db.Uuid
+  plan               Plan           @relation(fields: [planId], references: [id])
+  estado             AcademiaEstado @default(Activa)
+  onboardingCompleto Boolean        @default(false) @map("onboarding_completo")
+
+  usuarios            AcademiaUsuario[]
+  alumnos              Alumno[]
+  suscripciones        SuscripcionAcademia[]
+  cursos               Curso[]
+  paginas              Pagina[]
+  leads                Lead[]
+  cuentasPago          CuentaPagoCreador[]
+  inscripciones        Inscripcion[]
+  pagos                Pago[]
+  certificados         Certificado[]
+  auditLogs            AuditLog[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1: soft-delete obligatorio
+
+  @@map("academias")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.2 Identity & Access — tres tablas separadas por audiencia (M2)
+// ─────────────────────────────────────────────────────────────
+
+enum CursonubeStaffRol {
+  SuperAdmin
+  Soporte
+}
+
+model CursonubeStaff {
+  id           String            @id @db.Uuid
+  email        String            @unique
+  passwordHash String            @map("password_hash")
+  rol          CursonubeStaffRol
+
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("cursonube_staff")
+}
+
+enum AcademiaUsuarioRol {
+  Owner
+  Administrador
+  Profesor
+  Editor
+}
+
+enum AcademiaUsuarioEstado {
+  Activo
+  InvitadoPendiente
+  Desactivado
+}
+
+model AcademiaUsuario {
+  id           String                @id @db.Uuid
+  tenantId     String                @map("tenant_id") @db.Uuid
+  academia     Academia              @relation(fields: [tenantId], references: [id])
+  email        String
+  passwordHash String?               @map("password_hash")
+  rol          AcademiaUsuarioRol
+  estado       AcademiaUsuarioEstado @default(InvitadoPendiente)
+
+  cursosComoInstructor CursoInstructor[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("academia_usuarios")
+}
+
+model Alumno {
+  id           String  @id @db.Uuid
+  tenantId     String  @map("tenant_id") @db.Uuid
+  academia     Academia @relation(fields: [tenantId], references: [id])
+  email        String
+  passwordHash String? @map("password_hash") // nullable: guest-checkout (Documento 1, D6)
+  nombre       String
+
+  inscripciones Inscripcion[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("alumnos")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.3 Entitlements & Billing interno
+// ─────────────────────────────────────────────────────────────
+
+enum PlanSlug {
+  Free
+  Starter
+  Pro
+  Business
+}
+
+model Plan {
+  id                       String   @id @db.Uuid
+  slug                     PlanSlug @unique
+  maxProfesoresEditores    Int      @map("max_profesores_editores")
+  maxAlumnos               Int?     @map("max_alumnos")
+  maxCursos                Int?     @map("max_cursos")
+  dominioPropioHabilitado  Boolean  @map("dominio_propio_habilitado")
+  marcaCursonubeVisible    Boolean  @map("marca_cursonube_visible")
+  activo                   Boolean  @default(true)
+
+  academias     Academia[]
+  suscripciones SuscripcionAcademia[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("planes")
+}
+
+enum ProveedorBilling {
+  MercadoPago // único valor en MVP; stripe_billing se agrega en V2 sin romper el enum existente
+}
+
+enum SuscripcionEstado {
+  Activa
+  Pausada
+  Vencida
+  Cancelada
+}
+
+model SuscripcionAcademia {
+  id                      String            @id @db.Uuid
+  tenantId                String            @map("tenant_id") @db.Uuid
+  academia                Academia          @relation(fields: [tenantId], references: [id])
+  planId                  String            @map("plan_id") @db.Uuid
+  plan                    Plan              @relation(fields: [planId], references: [id])
+  proveedorBilling        ProveedorBilling  @map("proveedor_billing")
+  externalSubscriptionId  String            @map("external_subscription_id")
+  estado                  SuscripcionEstado
+  fechaInicio             DateTime          @map("fecha_inicio")
+  fechaProximaFacturacion DateTime?         @map("fecha_proxima_facturacion")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1
+
+  @@index([tenantId])
+  @@map("suscripciones_academia")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.4 Course Catalog
+// ─────────────────────────────────────────────────────────────
+
+enum TipoAcceso {
+  Gratis
+  PagoUnico
+}
+
+enum EstadoCurso {
+  Borrador
+  Publicado
+}
+
+model Curso {
+  id               String      @id @db.Uuid
+  tenantId         String      @map("tenant_id") @db.Uuid
+  academia         Academia    @relation(fields: [tenantId], references: [id])
+  titulo           String
+  slug             String
+  descripcion      String
+  tipoAcceso       TipoAcceso  @map("tipo_acceso")
+  precioCentavos   Int?        @map("precio_centavos") // nullable si tipoAcceso = Gratis
+  moneda           String?
+  imagenPortadaUrl String?     @map("imagen_portada_url")
+  estado           EstadoCurso @default(Borrador)
+
+  instructores  CursoInstructor[]
+  modulos       Modulo[]
+  inscripciones Inscripcion[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1: soft-delete una vez tiene alguna Inscripcion
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("cursos")
+}
+
+model CursoInstructor {
+  cursoId           String          @map("curso_id") @db.Uuid
+  curso             Curso           @relation(fields: [cursoId], references: [id])
+  academiaUsuarioId String          @map("academia_usuario_id") @db.Uuid
+  academiaUsuario   AcademiaUsuario @relation(fields: [academiaUsuarioId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([cursoId, academiaUsuarioId])
+  @@map("curso_instructores")
+}
+
+model Modulo {
+  id       String @id @db.Uuid
+  cursoId  String @map("curso_id") @db.Uuid
+  curso    Curso  @relation(fields: [cursoId], references: [id])
+  titulo   String
+  orden    Int
+
+  clases Clase[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // soft-delete si el Curso ya tiene Inscripcion (Documento 9, sección 6)
+
+  @@index([cursoId])
+  @@map("modulos")
+}
+
+enum VideoProvider {
+  YoutubeNoListado // único valor en MVP — Documento 2, decisión D4 (adaptador VideoProvider)
+}
+
+model Clase {
+  id                       String         @id @db.Uuid
+  moduloId                 String         @map("modulo_id") @db.Uuid
+  modulo                   Modulo         @relation(fields: [moduloId], references: [id])
+  titulo                   String
+  orden                    Int
+  videoProvider            VideoProvider? @map("video_provider")
+  videoExternalId          String?        @map("video_external_id")
+  contenidoTexto           String?        @map("contenido_texto")
+  duracionEstimadaMinutos  Int?           @map("duracion_estimada_minutos")
+
+  adjuntos       ClaseAdjunto[]
+  progresoAlumnos ProgresoClase[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // soft-delete si el Curso ya tiene Inscripcion (Documento 9, sección 6)
+
+  @@index([moduloId])
+  @@map("clases")
+}
+
+enum TipoAdjunto {
+  Pdf
+  Archivo
+  Link
+}
+
+model ClaseAdjunto {
+  id            String      @id @db.Uuid
+  claseId       String      @map("clase_id") @db.Uuid
+  clase         Clase       @relation(fields: [claseId], references: [id])
+  tipo          TipoAdjunto
+  url           String
+  nombreVisible String      @map("nombre_visible")
+  orden         Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([claseId])
+  @@map("clase_adjuntos")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.5 Content Editor
+// ─────────────────────────────────────────────────────────────
+
+enum TipoPagina {
+  Home
+  Cursos
+  SobreNosotros
+  Contacto
+  Faq
+  Politicas
+  Login
+  Custom
+}
+
+enum EstadoPagina {
+  Borrador
+  Publicada
+}
+
+model Pagina {
+  id       String       @id @db.Uuid
+  tenantId String       @map("tenant_id") @db.Uuid
+  academia Academia     @relation(fields: [tenantId], references: [id])
+  tipo     TipoPagina
+  slug     String
+  titulo   String
+  estado   EstadoPagina @default(Borrador)
+
+  bloques Bloque[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("paginas")
+}
+
+enum TipoBloque {
+  Hero
+  Texto
+  Imagen
+  Video
+  Cursos
+  Instructor
+  Testimonios
+  Faq
+  Cta
+  Newsletter
+  Contacto
+  Footer
+}
+
+model Bloque {
+  id          String     @id @db.Uuid
+  paginaId    String     @map("pagina_id") @db.Uuid
+  pagina      Pagina     @relation(fields: [paginaId], references: [id])
+  tipo        TipoBloque
+  orden       Int
+  propiedades Json // M3: JSONB, validado con Zod en la capa de aplicación, no en la DB
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([paginaId])
+  @@map("bloques")
+}
+
+enum OrigenLead {
+  Newsletter
+  Contacto
+}
+
+model Lead {
+  id       String     @id @db.Uuid
+  tenantId String     @map("tenant_id") @db.Uuid
+  academia Academia   @relation(fields: [tenantId], references: [id])
+  origen   OrigenLead
+  nombre   String? // solo lo completa el bloque Contacto
+  email    String
+  mensaje  String? // solo lo completa el bloque Contacto
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("leads")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.6 Enrollment & Payments
+// ─────────────────────────────────────────────────────────────
+
+enum ProveedorPago {
+  MercadoPago // único valor en MVP; stripe se agrega en V1.1 sin romper el enum existente
+}
+
+enum EstadoConexion {
+  Conectada
+  Desconectada
+  Revocada
+}
+
+model CuentaPagoCreador {
+  id                     String         @id @db.Uuid
+  tenantId               String         @map("tenant_id") @db.Uuid
+  academia               Academia       @relation(fields: [tenantId], references: [id])
+  proveedor              ProveedorPago
+  externalAccountId      String         @map("external_account_id")
+  accessTokenEncriptado  String         @map("access_token_encriptado") // AES-256-GCM, clave rotable (Documento 16)
+  estadoConexion         EstadoConexion @map("estado_conexion")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("cuentas_pago_creador")
+}
+
+enum EstadoInscripcion {
+  Activa
+  Completada
+  Cancelada
+}
+
+model Inscripcion {
+  id               String            @id @db.Uuid
+  tenantId         String            @map("tenant_id") @db.Uuid
+  academia         Academia          @relation(fields: [tenantId], references: [id])
+  alumnoId         String            @map("alumno_id") @db.Uuid
+  alumno           Alumno            @relation(fields: [alumnoId], references: [id])
+  cursoId          String            @map("curso_id") @db.Uuid
+  curso            Curso             @relation(fields: [cursoId], references: [id])
+  estado           EstadoInscripcion @default(Activa)
+  fechaInscripcion DateTime          @default(now()) @map("fecha_inscripcion")
+  fechaCompletado  DateTime?         @map("fecha_completado")
+
+  progresoClases ProgresoClase[]
+  pagos          Pago[]
+  certificado    Certificado?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1
+
+  @@index([tenantId])
+  @@index([alumnoId])
+  @@index([cursoId])
+  @@map("inscripciones")
+}
+
+model ProgresoClase {
+  inscripcionId   String      @map("inscripcion_id") @db.Uuid
+  inscripcion     Inscripcion @relation(fields: [inscripcionId], references: [id])
+  claseId         String      @map("clase_id") @db.Uuid
+  clase           Clase       @relation(fields: [claseId], references: [id])
+  completado      Boolean     @default(false)
+  fechaCompletado DateTime?   @map("fecha_completado")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([inscripcionId, claseId])
+  @@map("progreso_clases")
+}
+
+enum EstadoPago {
+  Aprobado
+  Pendiente
+  Rechazado
+  Reembolsado
+}
+
+model Pago {
+  id                 String        @id @db.Uuid
+  tenantId           String        @map("tenant_id") @db.Uuid
+  academia           Academia      @relation(fields: [tenantId], references: [id])
+  inscripcionId      String        @map("inscripcion_id") @db.Uuid
+  inscripcion        Inscripcion   @relation(fields: [inscripcionId], references: [id])
+  proveedor          ProveedorPago
+  externalPaymentId  String        @map("external_payment_id")
+  montoCentavos      Int           @map("monto_centavos") // congelado al momento de la compra
+  moneda             String
+  estado             EstadoPago
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1
+
+  @@index([tenantId])
+  @@index([inscripcionId])
+  @@map("pagos")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.7 Certificates
+// ─────────────────────────────────────────────────────────────
+
+model Certificado {
+  id                 String      @id @db.Uuid
+  tenantId           String      @map("tenant_id") @db.Uuid
+  academia           Academia    @relation(fields: [tenantId], references: [id])
+  inscripcionId      String      @unique @map("inscripcion_id") @db.Uuid
+  inscripcion        Inscripcion @relation(fields: [inscripcionId], references: [id])
+  urlPdf             String      @map("url_pdf")
+  codigoVerificacion String      @unique @map("codigo_verificacion") // generado desde el MVP (Documento 3)
+  fechaEmision       DateTime    @default(now()) @map("fecha_emision")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // M1
+
+  @@index([tenantId])
+  @@map("certificados")
+}
+
+// ─────────────────────────────────────────────────────────────
+// 2.8 Platform Admin
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id       String          @id @db.Uuid
+  staffId  String          @map("staff_id") @db.Uuid
+  staff    CursonubeStaff  @relation(fields: [staffId], references: [id])
+  tenantId String?         @map("tenant_id") @db.Uuid
+  academia Academia?       @relation(fields: [tenantId], references: [id])
+  accion   String
+  metadata Json
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@index([staffId])
+  @@map("audit_logs")
+}
