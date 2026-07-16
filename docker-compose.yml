@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cursonube
+      POSTGRES_PASSWORD: cursonube_dev
+      POSTGRES_DB: cursonube
+    ports:
+      - "5432:5432"
+    volumes:
+      - cursonube_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - cursonube_redis_data:/data
+
+volumes:
+  cursonube_postgres_data:
+  cursonube_redis_data:
