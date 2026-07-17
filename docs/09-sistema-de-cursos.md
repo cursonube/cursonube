@@ -13,8 +13,8 @@ Este documento detalla el comportamiento del módulo Course Catalog (Documento 2
 ## 2. Edición de contenido
 
 - Jerarquía y adjuntos: sin cambios respecto al Modelo de Datos (Documento 3).
-- **Validación del link de video:** al pegar un link de YouTube No Listado, el sistema lo valida contra la oEmbed API de YouTube antes de guardar (confirma que el video existe y es accesible) — evita clases "rotas" desde el momento en que se cargan.
-- **Duración estimada:** se obtiene automáticamente de la oEmbed API cuando es posible, con opción de sobreescritura manual — reduce carga de trabajo del creador sin quitarle control.
+- **Validación del link de video:** al pegar un link de YouTube No Listado, el sistema lo valida contra la oEmbed API de YouTube antes de guardar (confirma que el video existe y es accesible, y trae título/miniatura) — evita clases "rotas" desde el momento en que se cargan.
+- **Duración estimada:** corrección sobre la redacción original de este documento — la oEmbed API de YouTube **no incluye duración** en su respuesta (solo title/author/thumbnail/html); obtenerla requeriría la YouTube Data API v3 con API key propia y cuota, una dependencia no contemplada en ningún documento anterior. La duración estimada es **siempre manual** en el MVP; automatizarla queda como mejora candidata a V1.1 si se decide sumar esa integración.
 
 ## 3. Múltiples instructores por curso
 
