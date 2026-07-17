@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SecurityModule } from '../../common/security/security.module';
+import { ClaseAdjuntoController } from './clase-adjunto.controller';
+import { ClaseAdjuntoService } from './clase-adjunto.service';
 import { ClaseController } from './clase.controller';
 import { ClaseService } from './clase.service';
 import { CursoController } from './curso.controller';
@@ -10,14 +12,15 @@ import { ModuloService } from './modulo.service';
 /**
  * Bounded context: Curso, Modulo, Clase, ClaseAdjunto, CursoInstructor.
  * Documento 9 (Sistema de Cursos).
- *
- * Implementado hoy: Curso (CRUD + publicar/despublicar + instructores),
- * Modulo y Clase (CRUD + reordenar), validación de video vía YouTube oEmbed.
- * ClaseAdjunto (PDF/archivo/link) queda para una próxima pasada.
  */
 @Module({
   imports: [SecurityModule],
-  controllers: [CursoController, ModuloController, ClaseController],
-  providers: [CursoService, ModuloService, ClaseService],
+  controllers: [
+    CursoController,
+    ModuloController,
+    ClaseController,
+    ClaseAdjuntoController,
+  ],
+  providers: [CursoService, ModuloService, ClaseService, ClaseAdjuntoService],
 })
 export class CourseCatalogModule {}
