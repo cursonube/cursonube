@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/prisma/prisma.module';
+import { TenantContextMiddleware } from './common/tenant-context/tenant-context.middleware';
+import { TenantContextModule } from './common/tenant-context/tenant-context.module';
 import { TenancyModule } from './modules/tenancy/tenancy.module';
 import { IdentityAccessModule } from './modules/identity-access/identity-access.module';
 import { EntitlementsBillingModule } from './modules/entitlements-billing/entitlements-billing.module';
@@ -15,6 +17,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
 @Module({
   imports: [
     PrismaModule,
+    TenantContextModule,
     TenancyModule,
     IdentityAccessModule,
     EntitlementsBillingModule,
@@ -28,4 +31,11 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Documento 6, sección 1: resolución de tenant en toda request. Los
+    // endpoints que no reciben el header de subdominio simplemente no
+    // obtienen TenantContext (ver TenantContextMiddleware).
+    consumer.apply(TenantContextMiddleware).forRoutes('*');
+  }
+}
