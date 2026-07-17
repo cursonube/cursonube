@@ -28,3 +28,19 @@ export interface SessionTokenPayload {
   tenantId?: string; // ausente para staff (Documento 3: CursonubeStaff no es tenant-scoped)
   rol: string;
 }
+
+/**
+ * Token de un solo propósito para el guest-checkout (Documento 1, D6): no es
+ * una sesión real todavía (el alumno no definió contraseña), solo autoriza
+ * el paso siguiente ("creá tu contraseña"). Nunca se acepta en un endpoint
+ * que espere un SessionTokenPayload — tiene su propia forma (`purpose`) para
+ * que no puedan confundirse aunque compartan secreto de firma.
+ */
+export const SET_PASSWORD_TOKEN_COOKIE = 'cursonube_set_password_token';
+export const SET_PASSWORD_TOKEN_EXPIRES_IN = '30m';
+
+export interface SetPasswordTokenPayload {
+  sub: string; // id del Alumno
+  tenantId: string;
+  purpose: 'set-password';
+}
