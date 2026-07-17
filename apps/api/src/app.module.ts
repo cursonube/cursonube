@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -16,6 +17,9 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
 
 @Module({
   imports: [
+    // Documento 2, sección 2: eventos de dominio in-process entre módulos
+    // (ej. CourseCompletedEvent), nunca un broker externo en esta etapa.
+    EventEmitterModule.forRoot(),
     PrismaModule,
     TenantContextModule,
     TenancyModule,

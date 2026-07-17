@@ -30,3 +30,7 @@ Thumbs.db
 
 # Testing
 coverage/
+
+# Storage local de desarrollo (Documento 2: Cloudflare R2 en producción,
+# pendiente de credenciales — ver docs/09-sistema-de-cursos.md y el chat)
+apps/api/storage/
