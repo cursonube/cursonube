@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -13,10 +14,15 @@ import {
 } from '../../common/prisma/tenant-scoped-prisma.provider';
 import { TenantContextService } from '../../common/tenant-context/tenant-context.service';
 import { PasswordService } from '../../common/security/password.service';
+import type { SessionTokenPayload } from '../../common/security/jwt.config';
 import { getDefaultBlocksForPagina } from '../content-editor/default-blocks';
 import { CreateAcademiaDto } from './dto/create-academia.dto';
 import { SubdomainAvailabilityDto } from './dto/subdomain-availability.dto';
+import { UpdateAcademiaDto } from './dto/update-academia.dto';
 import { RESERVED_SUBDOMAINS } from './reserved-subdomains';
+
+/** Documento 6, decisión T1 — ventana post-creación para cambiar el subdominio. */
+const VENTANA_CAMBIO_SUBDOMINIO_HORAS = 48;
 
 /**
  * Páginas fijas creadas automáticamente por el wizard, ya publicadas y con
@@ -171,5 +177,77 @@ export class TenancyService {
         return academia;
       }),
     );
+  }
+
+  /** Documento 10, sección 1 — "Configuración": estado actual para prellenar el formulario. */
+  async getMiAcademia() {
+    const tenantId = this.tenantContext.requireTenantId();
+    const academia = await this.prisma.academia.findFirstOrThrow({
+      where: { id: tenantId },
+    });
+
+    const horasDesdeCreacion =
+      (Date.now() - academia.createdAt.getTime()) / (1000 * 60 * 60);
+
+    return {
+      nombre: academia.nombre,
+      subdominio: academia.subdominio,
+      dominioPropio: academia.dominioPropio,
+      logoUrl: academia.logoUrl,
+      colorPrimario: academia.colorPrimario,
+      colorSecundario: academia.colorSecundario,
+      imagenPrincipalUrl: academia.imagenPrincipalUrl,
+      puedeCambiarSubdominio:
+        horasDesdeCreacion <= VENTANA_CAMBIO_SUBDOMINIO_HORAS,
+    };
+  }
+
+  /**
+   * Documento 10, sección 1 — branding, subdominio (dentro de la ventana,
+   * Documento 6 T1) y dominio propio (guardado sin verificar todavía — la
+   * verificación + SSL automático dependen del proveedor de hosting,
+   * Documento 14, no desplegado). Owner/Administrador (Documento 10, nav).
+   */
+  async updateAcademia(dto: UpdateAcademiaDto, user: SessionTokenPayload) {
+    if (user.rol !== 'Owner' && user.rol !== 'Administrador') {
+      throw new ForbiddenException(
+        'Solo el Owner o un Administrador pueden cambiar la configuración de la academia',
+      );
+    }
+
+    const tenantId = this.tenantContext.requireTenantId();
+    const academia = await this.prisma.academia.findFirstOrThrow({
+      where: { id: tenantId },
+    });
+
+    if (dto.subdominio && dto.subdominio !== academia.subdominio) {
+      const horasDesdeCreacion =
+        (Date.now() - academia.createdAt.getTime()) / (1000 * 60 * 60);
+      if (horasDesdeCreacion > VENTANA_CAMBIO_SUBDOMINIO_HORAS) {
+        throw new ForbiddenException(
+          `El subdominio solo puede cambiarse dentro de las primeras ${VENTANA_CAMBIO_SUBDOMINIO_HORAS} horas desde la creación de la academia`,
+        );
+      }
+
+      const disponibilidad = await this.checkSubdomainAvailability(
+        dto.subdominio,
+      );
+      if (!disponibilidad.disponible) {
+        throw new ConflictException(disponibilidad.motivo);
+      }
+    }
+
+    return this.prisma.academia.update({
+      where: { id: tenantId },
+      data: {
+        nombre: dto.nombre,
+        logoUrl: dto.logoUrl,
+        colorPrimario: dto.colorPrimario,
+        colorSecundario: dto.colorSecundario,
+        imagenPrincipalUrl: dto.imagenPrincipalUrl,
+        subdominio: dto.subdominio,
+        dominioPropio: dto.dominioPropio,
+      },
+    });
   }
 }

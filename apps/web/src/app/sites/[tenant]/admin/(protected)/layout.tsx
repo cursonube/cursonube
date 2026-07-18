@@ -23,7 +23,17 @@ const NAV_ITEMS = [
   { href: '/admin/alumnos', label: 'Alumnos' },
   { href: '/admin/contactos', label: 'Contactos' },
   // Documento 7, decisión P2: exclusivo del rol Owner.
-  { href: '/admin/facturacion', label: 'Plan y Facturación', ownerOnly: true },
+  {
+    href: '/admin/facturacion',
+    label: 'Plan y Facturación',
+    roles: ['Owner'],
+  },
+  // Documento 10, nav: Owner y Administrador.
+  {
+    href: '/admin/configuracion',
+    label: 'Configuración',
+    roles: ['Owner', 'Administrador'],
+  },
 ];
 
 export default async function AdminLayout({
@@ -49,7 +59,9 @@ export default async function AdminLayout({
           <p className="text-xs text-zinc-500">{usuario.rol}</p>
         </div>
         <nav className="flex flex-row gap-4 md:flex-col md:gap-2">
-          {NAV_ITEMS.filter((item) => !item.ownerOnly || usuario.rol === 'Owner').map(
+          {NAV_ITEMS.filter(
+            (item) => !item.roles || (item.roles as string[]).includes(usuario.rol),
+          ).map(
             (item) => (
               <Link
                 key={item.href}
