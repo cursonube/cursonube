@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
+import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
 
 interface Curso {
   id: string;
@@ -17,7 +19,15 @@ const ESTADO_BADGE: Record<Curso['estado'], string> = {
 
 /** Documento 10, sección 1 — "Cursos": listado, creación y edición. */
 export default async function CursosPage() {
-  const cursos = await serverApiFetch<Curso[]>('cursos');
+  let cursos: Curso[];
+  try {
+    cursos = await serverApiFetch<Curso[]>('cursos');
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 403) {
+      return <BloqueadoPorImpago />;
+    }
+    throw err;
+  }
 
   return (
     <div>

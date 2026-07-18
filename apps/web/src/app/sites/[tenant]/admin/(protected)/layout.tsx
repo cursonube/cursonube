@@ -19,6 +19,8 @@ interface AcademiaUsuarioMe {
 const NAV_ITEMS = [
   { href: '/admin/cursos', label: 'Cursos' },
   { href: '/admin/sitio', label: 'Sitio' },
+  // Documento 7, decisión P2: exclusivo del rol Owner.
+  { href: '/admin/facturacion', label: 'Plan y Facturación', ownerOnly: true },
 ];
 
 export default async function AdminLayout({
@@ -44,15 +46,17 @@ export default async function AdminLayout({
           <p className="text-xs text-zinc-500">{usuario.rol}</p>
         </div>
         <nav className="flex flex-row gap-4 md:flex-col md:gap-2">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV_ITEMS.filter((item) => !item.ownerOnly || usuario.rol === 'Owner').map(
+            (item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="mt-auto hidden md:block">
           <LogoutButton

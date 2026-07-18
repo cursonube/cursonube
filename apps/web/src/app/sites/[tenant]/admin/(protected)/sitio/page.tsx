@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
+import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
 
 interface Pagina {
   id: string;
@@ -27,7 +29,15 @@ const TIPO_LABEL: Record<string, string> = {
  * cambiar su estado de publicación no tiene endpoint todavía.
  */
 export default async function SitioPage() {
-  const paginas = await serverApiFetch<Pagina[]>('paginas');
+  let paginas: Pagina[];
+  try {
+    paginas = await serverApiFetch<Pagina[]>('paginas');
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 403) {
+      return <BloqueadoPorImpago />;
+    }
+    throw err;
+  }
 
   return (
     <div>
