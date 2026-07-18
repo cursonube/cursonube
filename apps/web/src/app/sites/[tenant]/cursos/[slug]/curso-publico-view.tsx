@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 import type { CursoPublico } from './page';
 
@@ -50,18 +51,80 @@ function Sylabo({ modulos }: { modulos: CursoPublico['modulos'] }) {
 }
 
 /**
- * Documento 4, Flujo 5 — inscripción a un curso Gratis: síncrono, confirma
- * en el momento. `requierePassword` en la respuesta indica que la cuenta
- * quedó creada sin contraseña todavía (Documento 1, D6) — el flujo para
- * definirla desde el sitio público no está construido todavía, así que acá
- * solo se informa, no se redirige a un paso que todavía no existe.
+ * Documento 1, D6 — último paso del guest-checkout: la cuenta ya existe sin
+ * contraseña (creada por `inscribirseGratis`), y el cookie de `set-password`
+ * ya está en el browser desde esa misma respuesta. Este form solo define la
+ * contraseña — `POST /auth/alumno/definir-password` valida ese cookie server
+ * side y ya deja al alumno logueado, por eso acá no hace falta reenviar
+ * email/nombre.
  */
+function DefinirPasswordForm({ email }: { email: string }) {
+  const router = useRouter();
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await apiFetch('auth/alumno/definir-password', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+      router.push('/panel');
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'No se pudo crear la contraseña',
+      );
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
+        ¡Listo! Te inscribiste con {email}. Definí una contraseña para entrar a
+        tu panel de alumno.
+      </p>
+      {error && (
+        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
+          {error}
+        </p>
+      )}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Contraseña</label>
+        <input
+          type="password"
+          required
+          minLength={8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+      >
+        {loading ? 'Guardando…' : 'Crear contraseña y entrar'}
+      </button>
+    </form>
+  );
+}
+
+/** Documento 4, Flujo 5 — inscripción a un curso Gratis: síncrona, confirma en el momento. */
 function InscribirseForm({ cursoId }: { cursoId: string }) {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [estado, setEstado] = useState<'form' | 'definir-password' | 'ya-logueado'>(
+    'form',
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,11 +135,7 @@ function InscribirseForm({ cursoId }: { cursoId: string }) {
         `cursos/${cursoId}/inscripciones`,
         { method: 'POST', body: JSON.stringify({ nombre, email }) },
       );
-      setMensaje(
-        resultado.requierePassword
-          ? `¡Listo! Te inscribiste con ${email}. Pronto vas a poder crear tu contraseña para acceder a tu panel de alumno.`
-          : '¡Listo! Ya tenés acceso al curso desde tu panel de alumno.',
-      );
+      setEstado(resultado.requierePassword ? 'definir-password' : 'ya-logueado');
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : 'No se pudo completar la inscripción',
@@ -86,10 +145,14 @@ function InscribirseForm({ cursoId }: { cursoId: string }) {
     }
   }
 
-  if (mensaje) {
+  if (estado === 'definir-password') {
+    return <DefinirPasswordForm email={email} />;
+  }
+
+  if (estado === 'ya-logueado') {
     return (
       <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
-        {mensaje}
+        ¡Listo! Ya tenés acceso al curso desde tu panel de alumno.
       </p>
     );
   }
