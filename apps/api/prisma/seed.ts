@@ -18,6 +18,8 @@ const PLANES = [
     maxCursos: 1,
     dominioPropioHabilitado: false,
     marcaCursonubeVisible: true,
+    precioMensualCentavos: null,
+    moneda: null,
   },
   {
     slug: 'Starter' as const,
@@ -26,6 +28,8 @@ const PLANES = [
     maxCursos: 5,
     dominioPropioHabilitado: false,
     marcaCursonubeVisible: true,
+    precioMensualCentavos: 900000, // ARS 9.000 — placeholder
+    moneda: 'ARS',
   },
   {
     slug: 'Pro' as const,
@@ -34,6 +38,8 @@ const PLANES = [
     maxCursos: null,
     dominioPropioHabilitado: true,
     marcaCursonubeVisible: false,
+    precioMensualCentavos: 2500000, // ARS 25.000 — placeholder
+    moneda: 'ARS',
   },
   {
     slug: 'Business' as const,
@@ -44,6 +50,8 @@ const PLANES = [
     maxCursos: null,
     dominioPropioHabilitado: true,
     marcaCursonubeVisible: false,
+    precioMensualCentavos: 6000000, // ARS 60.000 — placeholder
+    moneda: 'ARS',
   },
 ];
 

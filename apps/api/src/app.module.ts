@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -20,6 +21,9 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     // Documento 2, sección 2: eventos de dominio in-process entre módulos
     // (ej. CourseCompletedEvent), nunca un broker externo en esta etapa.
     EventEmitterModule.forRoot(),
+    // Barrido de suspensión por impago (Documento 6, sección 4) — cron
+    // in-process, no justifica BullMQ/Redis para esto (ver SuspensionSweepService).
+    ScheduleModule.forRoot(),
     PrismaModule,
     TenantContextModule,
     TenancyModule,

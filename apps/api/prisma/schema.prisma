@@ -180,6 +180,13 @@ model Plan {
   dominioPropioHabilitado  Boolean  @map("dominio_propio_habilitado")
   marcaCursonubeVisible    Boolean  @map("marca_cursonube_visible")
   activo                   Boolean  @default(true)
+  // Documento 3 no incluía precio en Plan (quedaba "a definir" a nivel de
+  // negocio) — pero Billing propio (Documento 8, sección 6) necesita un
+  // monto real para crear la suscripción `preapproval` en Mercado Pago. Los
+  // números concretos siguen siendo placeholder (mismo criterio que el
+  // resto del catálogo en seed.ts); null en el plan Free, que no factura.
+  precioMensualCentavos    Int?     @map("precio_mensual_centavos")
+  moneda                   String?  @map("moneda")
 
   academias     Academia[]
   suscripciones SuscripcionAcademia[]
