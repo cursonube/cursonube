@@ -200,4 +200,68 @@ export class CursoService {
       where: { cursoId, academiaUsuarioId },
     });
   }
+
+  /**
+   * Documento 4, Flujo 5 / Documento 8, sección 2, punto 4 — vista pública
+   * (sin guard) para la página del curso en el sitio del creador. Nunca
+   * expone `videoExternalId`/`contenidoTexto`/adjuntos de las clases: eso es
+   * contenido del curso, solo visible una vez inscripto (Documento 9).
+   * `puedeComprarse` oculta el botón "Comprar" si el curso es pago y el
+   * creador no tiene una cuenta de Mercado Pago conectada — nunca se deja
+   * llegar a un alumno al checkout para que falle ahí.
+   */
+  async findPublicadoPorSlug(slug: string) {
+    const curso = await this.tenantScopedPrisma.curso.findFirst({
+      where: { slug, estado: 'Publicado' },
+      include: {
+        modulos: {
+          orderBy: { orden: 'asc' },
+          include: {
+            clases: {
+              orderBy: { orden: 'asc' },
+              select: {
+                id: true,
+                titulo: true,
+                orden: true,
+                duracionEstimadaMinutos: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!curso) {
+      throw new NotFoundException(
+        'El curso indicado no existe o no está publicado',
+      );
+    }
+
+    let puedeComprarse = true;
+    if (curso.tipoAcceso === 'PagoUnico') {
+      const cuenta = await this.tenantScopedPrisma.cuentaPagoCreador.findFirst(
+        { where: { proveedor: 'MercadoPago', estadoConexion: 'Conectada' } },
+      );
+      puedeComprarse = !!cuenta;
+    }
+
+    return {
+      id: curso.id,
+      titulo: curso.titulo,
+      descripcion: curso.descripcion,
+      tipoAcceso: curso.tipoAcceso,
+      precioCentavos: curso.precioCentavos,
+      moneda: curso.moneda,
+      imagenPortadaUrl: curso.imagenPortadaUrl,
+      puedeComprarse,
+      modulos: curso.modulos.map((m) => ({
+        titulo: m.titulo,
+        orden: m.orden,
+        clases: m.clases.map((c) => ({
+          titulo: c.titulo,
+          orden: c.orden,
+          duracionEstimadaMinutos: c.duracionEstimadaMinutos,
+        })),
+      })),
+    };
+  }
 }

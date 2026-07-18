@@ -6,7 +6,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { generateId } from '../../common/id/generate-id';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import {
@@ -15,6 +14,7 @@ import {
 } from '../../common/prisma/tenant-scoped-prisma.provider';
 import { TenantContextService } from '../../common/tenant-context/tenant-context.service';
 import type { SessionTokenPayload } from '../../common/security/jwt.config';
+import { verifyMercadoPagoWebhookSignature } from '../../common/security/mercado-pago-webhook.util';
 import {
   CURSONUBE_MP_ACCESS_TOKEN,
   CURSONUBE_MP_WEBHOOK_SECRET,
@@ -240,45 +240,18 @@ export class SuscripcionAcademiaService {
     }
   }
 
-  /**
-   * Documento 8, sección 4: todo webhook se verifica antes de procesarse.
-   * Formato real de Mercado Pago: header `x-signature: ts=...,v1=...` +
-   * `x-request-id`, HMAC-SHA256 sobre el manifest
-   * `id:{data.id};request-id:{x-request-id};ts:{ts};` con el secreto
-   * configurado en el panel de la aplicación.
-   */
+  /** Documento 8, sección 4: todo webhook se verifica antes de procesarse. */
   verifyWebhookSignature(
     dataId: string,
     xSignature: string | undefined,
     xRequestId: string | undefined,
   ): boolean {
-    if (!xSignature || !xRequestId || !CURSONUBE_MP_WEBHOOK_SECRET) {
-      return false;
-    }
-
-    const partes = Object.fromEntries(
-      xSignature.split(',').map((par) => {
-        const [k, v] = par.split('=');
-        return [k?.trim(), v?.trim()];
-      }),
+    return verifyMercadoPagoWebhookSignature(
+      CURSONUBE_MP_WEBHOOK_SECRET,
+      dataId,
+      xSignature,
+      xRequestId,
     );
-    const ts = partes.ts;
-    const v1 = partes.v1;
-    if (!ts || !v1) {
-      return false;
-    }
-
-    const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
-    const firmaEsperada = createHmac('sha256', CURSONUBE_MP_WEBHOOK_SECRET)
-      .update(manifest)
-      .digest('hex');
-
-    const bufferEsperado = Buffer.from(firmaEsperada, 'utf8');
-    const bufferRecibido = Buffer.from(v1, 'utf8');
-    if (bufferEsperado.length !== bufferRecibido.length) {
-      return false;
-    }
-    return timingSafeEqual(bufferEsperado, bufferRecibido);
   }
 
   /**

@@ -11,3 +11,14 @@ export const MP_AUTHORIZATION_URL =
 export const MP_TOKEN_URL = 'https://api.mercadopago.com/oauth/token';
 export const MP_PREFERENCES_URL =
   'https://api.mercadopago.com/checkout/preferences';
+export const MP_PAYMENTS_URL = 'https://api.mercadopago.com/v1/payments';
+
+/**
+ * Documento 8, sección 4 — secreto de firma de webhooks de ESTA aplicación
+ * de Mercado Pago (la de OAuth, sección 2). Distinto de
+ * `CURSONUBE_MP_WEBHOOK_SECRET` (entitlements-billing): son dos aplicaciones
+ * de Mercado Pago distintas, cada una con su propio secreto configurado en
+ * su propio panel de desarrollador.
+ */
+export const MP_CHECKOUT_WEBHOOK_SECRET =
+  process.env.MP_CHECKOUT_WEBHOOK_SECRET ?? '';
