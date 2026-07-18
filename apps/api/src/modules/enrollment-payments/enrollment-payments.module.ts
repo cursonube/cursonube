@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SecurityModule } from '../../common/security/security.module';
+import { AlumnoAdminController } from './alumno-admin.controller';
+import { AlumnoAdminService } from './alumno-admin.service';
 import { AlumnoPanelController } from './alumno-panel.controller';
 import { AlumnoPanelService } from './alumno-panel.service';
 import { CuentaPagoCreadorController } from './cuenta-pago-creador.controller';
@@ -26,12 +28,14 @@ import { ProgresoClaseService } from './progreso-clase.service';
     CuentaPagoCreadorController,
     ProgresoClaseController,
     AlumnoPanelController,
+    AlumnoAdminController,
   ],
   providers: [
     InscripcionService,
     CuentaPagoCreadorService,
     ProgresoClaseService,
     AlumnoPanelService,
+    AlumnoAdminService,
   ],
 })
 export class EnrollmentPaymentsModule {}

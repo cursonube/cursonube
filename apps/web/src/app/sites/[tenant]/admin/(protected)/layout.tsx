@@ -19,6 +19,7 @@ interface AcademiaUsuarioMe {
 const NAV_ITEMS = [
   { href: '/admin/cursos', label: 'Cursos' },
   { href: '/admin/sitio', label: 'Sitio' },
+  { href: '/admin/alumnos', label: 'Alumnos' },
   // Documento 7, decisión P2: exclusivo del rol Owner.
   { href: '/admin/facturacion', label: 'Plan y Facturación', ownerOnly: true },
 ];
