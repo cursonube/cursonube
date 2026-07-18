@@ -18,28 +18,34 @@ import { UpdateAcademiaDto } from './dto/update-academia.dto';
 import { TenancyService } from './tenancy.service';
 
 @ApiTags('tenancy')
-@Controller('academias')
+@Controller()
 export class TenancyController {
   constructor(private readonly tenancyService: TenancyService) {}
 
-  @Get('disponibilidad')
+  /** Documento 4, Flujo 1, Paso 3 — catálogo de plantillas, mismo criterio que GET /planes. */
+  @Get('plantillas')
+  listPlantillas() {
+    return this.tenancyService.listPlantillas();
+  }
+
+  @Get('academias/disponibilidad')
   @ApiOkResponse({ type: SubdomainAvailabilityDto })
   checkSubdomain(@Query() query: CheckSubdomainDto) {
     return this.tenancyService.checkSubdomainAvailability(query.subdominio);
   }
 
-  @Post()
+  @Post('academias')
   create(@Body() dto: CreateAcademiaDto) {
     return this.tenancyService.createAcademia(dto);
   }
 
-  @Get('mi-academia')
+  @Get('academias/mi-academia')
   @UseGuards(AcademiaUsuarioAuthGuard)
   getMiAcademia() {
     return this.tenancyService.getMiAcademia();
   }
 
-  @Patch('mi-academia')
+  @Patch('academias/mi-academia')
   @UseGuards(AcademiaUsuarioAuthGuard)
   updateMiAcademia(
     @Body() dto: UpdateAcademiaDto,

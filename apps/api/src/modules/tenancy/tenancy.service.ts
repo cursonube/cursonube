@@ -52,6 +52,11 @@ export class TenancyService {
     private readonly passwordService: PasswordService,
   ) {}
 
+  /** Documento 4, Flujo 1, Paso 3 — catálogo de las 5 plantillas para elegir. */
+  listPlantillas() {
+    return this.prisma.plantilla.findMany({ orderBy: { nombre: 'asc' } });
+  }
+
   /**
    * Documento 4, Flujo 1, Paso 2 — verificación en tiempo real.
    */

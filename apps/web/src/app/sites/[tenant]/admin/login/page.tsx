@@ -1,20 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 
 /**
  * Login del panel de gestión (Owner/Administrador/Profesor/Editor) —
  * Documento 7, sección 2: `academia.cursonube.com/admin/login`. Distinto
  * del login de Alumno (`/login`, Panel del Alumno).
+ *
+ * `?email=`/`?bienvenida=1`/`?tituloSugerido=`/`?descripcionSugerida=`:
+ * handoff del wizard de onboarding (Documento 4, Flujo 1) — las sesiones
+ * están scoped al hostname exacto (Documento 7), así que no se puede llegar
+ * ya logueado desde el dominio raíz donde corre el wizard — esto evita
+ * pedir de nuevo el email y retoma el curso opcional del paso 5 si se cargó.
  */
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const bienvenida = searchParams.get('bienvenida') === '1';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,7 +33,17 @@ export default function AdminLoginPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      router.push('/admin');
+      const tituloSugerido = searchParams.get('tituloSugerido');
+      if (tituloSugerido) {
+        const params = new URLSearchParams({ tituloSugerido });
+        const descripcionSugerida = searchParams.get('descripcionSugerida');
+        if (descripcionSugerida) {
+          params.set('descripcionSugerida', descripcionSugerida);
+        }
+        router.push(`/admin/cursos/nuevo?${params.toString()}`);
+      } else {
+        router.push('/admin');
+      }
       router.refresh();
     } catch (err) {
       setError(
@@ -52,6 +70,12 @@ export default function AdminLoginPage() {
             Iniciá sesión para administrar tu academia
           </p>
         </div>
+
+        {bienvenida && !error && (
+          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
+            ¡Tu academia ya está lista! Iniciá sesión para entrar a tu panel.
+          </p>
+        )}
 
         {error && (
           <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">

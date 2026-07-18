@@ -1,17 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 
 interface Curso {
   id: string;
 }
 
+/**
+ * `tituloSugerido`/`descripcionSugerida`: handoff del paso 5 (opcional) del
+ * wizard de onboarding (Documento 4, Flujo 1) — ese paso no puede crear el
+ * curso directamente (todavía no hay sesión ni tenant en ese punto), así que
+ * solo precarga este formulario una vez que el Owner ya inició sesión acá.
+ */
 export default function NuevoCursoPage() {
   const router = useRouter();
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const searchParams = useSearchParams();
+  const [titulo, setTitulo] = useState(searchParams.get('tituloSugerido') ?? '');
+  const [descripcion, setDescripcion] = useState(
+    searchParams.get('descripcionSugerida') ?? '',
+  );
   const [tipoAcceso, setTipoAcceso] = useState<'Gratis' | 'PagoUnico'>('Gratis');
   const [precio, setPrecio] = useState('');
   const [moneda, setMoneda] = useState('ARS');
