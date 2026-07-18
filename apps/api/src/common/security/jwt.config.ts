@@ -44,3 +44,17 @@ export interface SetPasswordTokenPayload {
   tenantId: string;
   purpose: 'set-password';
 }
+
+/**
+ * Documento 7, sección 6: 2FA obligatorio para CursonubeStaff desde el MVP.
+ * Login en dos pasos — credenciales primero, código TOTP después — este
+ * token de corta duración correlaciona ambos pasos sin tener que reenviar
+ * la contraseña en el segundo (mismo patrón que `SetPasswordTokenPayload`).
+ */
+export const STAFF_2FA_PENDING_TOKEN_COOKIE = 'cursonube_staff_2fa_pending';
+export const STAFF_2FA_PENDING_TOKEN_EXPIRES_IN = '5m';
+
+export interface Staff2faPendingTokenPayload {
+  sub: string; // id del CursonubeStaff
+  purpose: 'staff-2fa-pending';
+}

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as argon2 from 'argon2';
 import { generateId } from '../src/common/id/generate-id';
 
 const prisma = new PrismaClient();
@@ -89,7 +90,28 @@ async function main() {
     });
   }
 
-  console.log(`Seed OK: ${PLANES.length} planes, ${PLANTILLAS.length} plantillas.`);
+  // Documento 7, sección 2: sin self-registration para CursonubeStaff (dominio
+  // interno, no expuesto a academias/alumnos) — la única forma de tener una
+  // primera cuenta es este bootstrap. Contraseña de desarrollo únicamente;
+  // `update: {}` para no resetearla en reseeds si ya se cambió a mano.
+  const BOOTSTRAP_STAFF_EMAIL = 'admin@cursonube.com';
+  const staffExistente = await prisma.cursonubeStaff.findUnique({
+    where: { email: BOOTSTRAP_STAFF_EMAIL },
+  });
+  if (!staffExistente) {
+    await prisma.cursonubeStaff.create({
+      data: {
+        id: generateId(),
+        email: BOOTSTRAP_STAFF_EMAIL,
+        passwordHash: await argon2.hash('dev-local-staff-password'),
+        rol: 'SuperAdmin',
+      },
+    });
+  }
+
+  console.log(
+    `Seed OK: ${PLANES.length} planes, ${PLANTILLAS.length} plantillas, staff bootstrap (${BOOTSTRAP_STAFF_EMAIL}).`,
+  );
 }
 
 main()

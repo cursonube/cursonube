@@ -10,6 +10,9 @@ import {
   REFRESH_TOKEN_COOKIE,
   SET_PASSWORD_TOKEN_COOKIE,
   SET_PASSWORD_TOKEN_EXPIRES_IN,
+  Staff2faPendingTokenPayload,
+  STAFF_2FA_PENDING_TOKEN_COOKIE,
+  STAFF_2FA_PENDING_TOKEN_EXPIRES_IN,
   SessionTokenPayload,
   SetPasswordTokenPayload,
 } from './jwt.config';
@@ -127,6 +130,39 @@ export class SessionService {
     } catch {
       throw new UnauthorizedException(
         'El link para definir tu contraseña es inválido o expiró',
+      );
+    }
+  }
+
+  /** Documento 7, sección 6 — correlaciona el paso 1 (credenciales) y 2 (TOTP) del login de Staff. */
+  issueStaff2faPendingCookie(res: Response, payload: Staff2faPendingTokenPayload) {
+    const token = this.jwtService.sign(payload, {
+      secret: JWT_ACCESS_SECRET,
+      expiresIn: STAFF_2FA_PENDING_TOKEN_EXPIRES_IN,
+    });
+    res.cookie(STAFF_2FA_PENDING_TOKEN_COOKIE, token, {
+      ...this.baseCookieOptions(),
+      maxAge: 5 * 60 * 1000,
+    });
+  }
+
+  clearStaff2faPendingCookie(res: Response) {
+    res.clearCookie(STAFF_2FA_PENDING_TOKEN_COOKIE);
+  }
+
+  verifyStaff2faPendingToken(token: string): Staff2faPendingTokenPayload {
+    try {
+      const payload = this.jwtService.verify<Staff2faPendingTokenPayload>(
+        token,
+        { secret: JWT_ACCESS_SECRET },
+      );
+      if (payload.purpose !== 'staff-2fa-pending') {
+        throw new Error('wrong purpose');
+      }
+      return payload;
+    } catch {
+      throw new UnauthorizedException(
+        'La sesión de login expiró — iniciá sesión de nuevo',
       );
     }
   }

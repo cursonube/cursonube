@@ -5,6 +5,7 @@ import { AlumnoAuthGuard } from './alumno-auth.guard';
 import { EncryptionService } from './encryption.service';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
+import { StaffAuthGuard } from './staff-auth.guard';
 
 @Module({
   imports: [JwtModule.register({})], // secretos/expiración se pasan explícitos por llamada (ver session.service.ts)
@@ -14,6 +15,7 @@ import { SessionService } from './session.service';
     EncryptionService,
     AcademiaUsuarioAuthGuard,
     AlumnoAuthGuard,
+    StaffAuthGuard,
   ],
   exports: [
     JwtModule,
@@ -22,6 +24,7 @@ import { SessionService } from './session.service';
     EncryptionService,
     AcademiaUsuarioAuthGuard,
     AlumnoAuthGuard,
+    StaffAuthGuard,
   ],
 })
 export class SecurityModule {}

@@ -97,10 +97,12 @@ enum CursonubeStaffRol {
 }
 
 model CursonubeStaff {
-  id           String            @id @db.Uuid
-  email        String            @unique
-  passwordHash String            @map("password_hash")
-  rol          CursonubeStaffRol
+  id                  String            @id @db.Uuid
+  email               String            @unique
+  passwordHash        String            @map("password_hash")
+  rol                 CursonubeStaffRol
+  twoFactorSecret     String?           @map("two_factor_secret") // null hasta completar el enrollment
+  twoFactorHabilitado Boolean           @default(false) @map("two_factor_habilitado")
 
   auditLogs AuditLog[]
 
