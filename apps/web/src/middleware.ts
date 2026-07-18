@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DEV_TENANT_COOKIE, resolveDevTenantOverride } from '@/lib/dev-tenant';
 
 /**
  * Resolución de tenant por hostname — Documento 6 (Sistema Multi-Tenant),
@@ -41,7 +42,7 @@ const RESERVED_SUBDOMAINS = new Set([
   'cursonube',
 ]);
 
-function extractSubdomain(host: string): string | null {
+export function extractSubdomain(host: string): string | null {
   const hostname = host.split(':')[0]!.toLowerCase();
 
   if (hostname === ROOT_DOMAIN || hostname === `www.${ROOT_DOMAIN}`) {
@@ -60,7 +61,12 @@ function extractSubdomain(host: string): string | null {
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? '';
-  const subdomain = extractSubdomain(host);
+  const subdomain =
+    extractSubdomain(host) ??
+    resolveDevTenantOverride(
+      request.nextUrl.searchParams.get('tenant'),
+      request.cookies.get(DEV_TENANT_COOKIE)?.value,
+    );
 
   if (!subdomain || RESERVED_SUBDOMAINS.has(subdomain)) {
     return NextResponse.next();
@@ -71,14 +77,23 @@ export function middleware(request: NextRequest) {
 
   const headers = new Headers(request.headers);
   headers.set(INTERNAL_REWRITE_HEADER, '1');
-  return NextResponse.rewrite(url, { request: { headers } });
+  const response = NextResponse.rewrite(url, { request: { headers } });
+
+  if (process.env.NODE_ENV !== 'production') {
+    response.cookies.set(DEV_TENANT_COOKIE, subdomain, { path: '/' });
+  }
+
+  return response;
 }
 
 export const config = {
   matcher: [
     /*
-     * Todas las rutas excepto assets estáticos internos de Next.js.
+     * Todas las rutas excepto assets estáticos internos de Next.js y el
+     * proxy same-origin hacia la API (/api/backend/*, ver ese route handler)
+     * — el proxy debe resolverse igual sin importar el subdominio desde el
+     * que se lo llame, nunca reescribirse a /sites/[tenant]/api/backend/...
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };

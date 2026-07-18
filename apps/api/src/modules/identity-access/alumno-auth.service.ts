@@ -7,6 +7,7 @@ import {
   TenantScopedPrismaClient,
 } from '../../common/prisma/tenant-scoped-prisma.provider';
 import { TenantContextService } from '../../common/tenant-context/tenant-context.service';
+import { CambiarPasswordAlumnoDto } from './dto/cambiar-password-alumno.dto';
 import { DefinirPasswordDto } from './dto/definir-password.dto';
 import { LoginAlumnoDto } from './dto/login-alumno.dto';
 
@@ -83,6 +84,10 @@ export class AlumnoAuthService {
     return { id: alumno.id, email: alumno.email, nombre: alumno.nombre };
   }
 
+  logout(res: Response) {
+    this.sessionService.clearSessionCookies(res);
+  }
+
   async me(alumnoId: string) {
     const alumno = await this.tenantScopedPrisma.alumno.findFirst({
       where: { id: alumnoId },
@@ -91,5 +96,37 @@ export class AlumnoAuthService {
       throw new UnauthorizedException('Sesión inválida');
     }
     return { id: alumno.id, email: alumno.email, nombre: alumno.nombre };
+  }
+
+  /**
+   * Documento 11, sección 1 ("Mi Cuenta") — cambio de contraseña estando ya
+   * logueado, distinto del flujo de "definir contraseña" del guest-checkout
+   * (acá se exige la contraseña actual). El cambio de email con
+   * verificación por link (mismo documento) queda pendiente de la
+   * infraestructura de email transaccional (Resend), todavía no construida.
+   */
+  async cambiarPassword(alumnoId: string, dto: CambiarPasswordAlumnoDto) {
+    const alumno = await this.tenantScopedPrisma.alumno.findFirst({
+      where: { id: alumnoId },
+    });
+    if (!alumno || !alumno.passwordHash) {
+      throw new UnauthorizedException('Sesión inválida');
+    }
+
+    const passwordValida = await this.passwordService.verify(
+      alumno.passwordHash,
+      dto.passwordActual,
+    );
+    if (!passwordValida) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+
+    const passwordHash = await this.passwordService.hash(dto.passwordNueva);
+    await this.tenantScopedPrisma.alumno.update({
+      where: { id: alumnoId },
+      data: { passwordHash },
+    });
+
+    return { actualizado: true };
   }
 }

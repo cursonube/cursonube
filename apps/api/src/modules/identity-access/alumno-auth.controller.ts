@@ -17,6 +17,7 @@ import {
   SessionTokenPayload,
 } from '../../common/security/jwt.config';
 import { AlumnoAuthService } from './alumno-auth.service';
+import { CambiarPasswordAlumnoDto } from './dto/cambiar-password-alumno.dto';
 import { DefinirPasswordDto } from './dto/definir-password.dto';
 import { LoginAlumnoDto } from './dto/login-alumno.dto';
 
@@ -52,5 +53,20 @@ export class AlumnoAuthController {
   @UseGuards(AlumnoAuthGuard)
   me(@CurrentUser() user: SessionTokenPayload) {
     return this.alumnoAuthService.me(user.sub);
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    this.alumnoAuthService.logout(res);
+    return { ok: true };
+  }
+
+  @Post('cambiar-password')
+  @UseGuards(AlumnoAuthGuard)
+  cambiarPassword(
+    @CurrentUser() user: SessionTokenPayload,
+    @Body() dto: CambiarPasswordAlumnoDto,
+  ) {
+    return this.alumnoAuthService.cambiarPassword(user.sub, dto);
   }
 }
