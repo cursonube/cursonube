@@ -67,6 +67,10 @@ export class AcademiaUsuarioAuthService {
     };
   }
 
+  logout(res: Response) {
+    this.sessionService.clearSessionCookies(res);
+  }
+
   /** Datos frescos de la sesión actual — nunca se confía solo en el JWT para esto. */
   async me(userId: string) {
     const usuario = await this.tenantScopedPrisma.academiaUsuario.findFirst({

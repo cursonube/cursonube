@@ -25,4 +25,10 @@ export class AcademiaUsuarioAuthController {
   me(@CurrentUser() user: SessionTokenPayload) {
     return this.authService.me(user.sub);
   }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    this.authService.logout(res);
+    return { ok: true };
+  }
 }

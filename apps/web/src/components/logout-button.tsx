@@ -3,12 +3,18 @@
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api-client';
 
-export function LogoutButton({ logoutPath }: { logoutPath: string }) {
+export function LogoutButton({
+  logoutPath,
+  redirectTo = '/login',
+}: {
+  logoutPath: string;
+  redirectTo?: string;
+}) {
   const router = useRouter();
 
   async function handleLogout() {
     await apiFetch(logoutPath, { method: 'POST' });
-    router.push('/login');
+    router.push(redirectTo);
     router.refresh();
   }
 
