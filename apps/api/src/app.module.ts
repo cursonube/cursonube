@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -24,6 +25,12 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     // Barrido de suspensión por impago (Documento 6, sección 4) — cron
     // in-process, no justifica BullMQ/Redis para esto (ver SuspensionSweepService).
     ScheduleModule.forRoot(),
+    // Documento 6, sección 7: rate limiting básico por IP en endpoints
+    // públicos sensibles (login, checkout, captura de Leads). Registrado
+    // acá para tener disponible el storage del throttler, pero el guard
+    // solo se aplica puntualmente (ej. LeadController) — no global, para
+    // no afectar el resto de los endpoints ya probados.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
     PrismaModule,
     TenantContextModule,
     TenancyModule,
