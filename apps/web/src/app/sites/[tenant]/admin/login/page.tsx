@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      router.push('/admin/cursos');
+      router.push('/admin');
       router.refresh();
     } catch (err) {
       setError(

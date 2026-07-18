@@ -16,6 +16,7 @@ import { EnrollmentPaymentsModule } from './modules/enrollment-payments/enrollme
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PlatformAdminModule } from './modules/platform-admin/platform-admin.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     CertificatesModule,
     NotificationsModule,
     PlatformAdminModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

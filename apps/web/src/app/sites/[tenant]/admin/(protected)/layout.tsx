@@ -17,6 +17,7 @@ interface AcademiaUsuarioMe {
  * un link a una sección sin implementar sería peor que no mostrarla.
  */
 const NAV_ITEMS = [
+  { href: '/admin', label: 'Inicio' },
   { href: '/admin/cursos', label: 'Cursos' },
   { href: '/admin/sitio', label: 'Sitio' },
   { href: '/admin/alumnos', label: 'Alumnos' },
