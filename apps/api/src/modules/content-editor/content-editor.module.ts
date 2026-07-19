@@ -6,6 +6,7 @@ import { LeadController } from './lead.controller';
 import { LeadService } from './lead.service';
 import { PaginaController } from './pagina.controller';
 import { PaginaService } from './pagina.service';
+import { SitioPublicoController } from './sitio-publico.controller';
 
 /**
  * Bounded context: Pagina, Bloque (catálogo cerrado de 12 tipos), Lead.
@@ -13,7 +14,12 @@ import { PaginaService } from './pagina.service';
  */
 @Module({
   imports: [SecurityModule],
-  controllers: [PaginaController, BloqueController, LeadController],
+  controllers: [
+    PaginaController,
+    BloqueController,
+    LeadController,
+    SitioPublicoController,
+  ],
   providers: [PaginaService, BloqueService, LeadService],
 })
 export class ContentEditorModule {}

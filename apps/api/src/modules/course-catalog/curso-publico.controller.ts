@@ -13,6 +13,12 @@ import { CursoService } from './curso.service';
 export class CursoPublicoController {
   constructor(private readonly cursoService: CursoService) {}
 
+  /** Documento 5, sección 3 — listado para el bloque "Cursos" del sitio público. */
+  @Get()
+  listPublicados() {
+    return this.cursoService.listPublicados();
+  }
+
   @Get(':slug')
   findPublicadoPorSlug(@Param('slug') slug: string) {
     return this.cursoService.findPublicadoPorSlug(slug);

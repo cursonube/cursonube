@@ -264,4 +264,27 @@ export class CursoService {
       })),
     };
   }
+
+  /**
+   * Documento 5, sección 3 — bloque "Cursos" del sitio público: listado de
+   * cursos publicados. El bloque distingue "destacados"/"todos" en su
+   * propiedad `seleccion`, pero no existe todavía un flag de "destacado" en
+   * el modelo de Curso — hasta que se agregue, ambas opciones muestran el
+   * mismo listado completo (simplificación documentada, no un olvido).
+   */
+  listPublicados() {
+    return this.tenantScopedPrisma.curso.findMany({
+      where: { estado: 'Publicado' },
+      select: {
+        id: true,
+        titulo: true,
+        slug: true,
+        tipoAcceso: true,
+        precioCentavos: true,
+        moneda: true,
+        imagenPortadaUrl: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

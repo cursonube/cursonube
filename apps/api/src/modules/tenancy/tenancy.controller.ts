@@ -39,6 +39,12 @@ export class TenancyController {
     return this.tenancyService.createAcademia(dto);
   }
 
+  /** Documento 5 — branding público para el header del sitio (sin guard). */
+  @Get('academias/branding-publico')
+  getBrandingPublico() {
+    return this.tenancyService.getBrandingPublico();
+  }
+
   @Get('academias/mi-academia')
   @UseGuards(AcademiaUsuarioAuthGuard)
   getMiAcademia() {

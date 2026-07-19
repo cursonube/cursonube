@@ -58,6 +58,24 @@ export class TenancyService {
   }
 
   /**
+   * Documento 5 — branding mínimo para el sitio público (header, colores):
+   * a diferencia de `getMiAcademia` (panel del creador, guardado), acá
+   * cualquier visitante sin cuenta necesita poder pedirlo.
+   */
+  async getBrandingPublico() {
+    const tenantId = this.tenantContext.requireTenantId();
+    const academia = await this.prisma.academia.findFirstOrThrow({
+      where: { id: tenantId },
+    });
+    return {
+      nombre: academia.nombre,
+      logoUrl: academia.logoUrl,
+      colorPrimario: academia.colorPrimario,
+      colorSecundario: academia.colorSecundario,
+    };
+  }
+
+  /**
    * Documento 4, Flujo 1, Paso 2 — verificación en tiempo real.
    */
   async checkSubdomainAvailability(

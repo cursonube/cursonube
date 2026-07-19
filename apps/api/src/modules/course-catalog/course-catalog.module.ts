@@ -17,8 +17,12 @@ import { ModuloService } from './modulo.service';
 @Module({
   imports: [SecurityModule],
   controllers: [
-    CursoController,
+    // CursoPublicoController antes que CursoController: su ruta estática
+    // `cursos/publico` (listado) debe resolverse antes de que Express la
+    // matchee contra `cursos/:id` (guardada) de CursoController, que
+    // registrada primero le ganaría el match tratando "publico" como :id.
     CursoPublicoController,
+    CursoController,
     ModuloController,
     ClaseController,
     ClaseAdjuntoController,

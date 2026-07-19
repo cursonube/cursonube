@@ -1,0 +1,7 @@
+import { PaginaRenderer } from '../../_bloques/pagina-renderer';
+import { obtenerPaginaPublica } from '../../_bloques/obtener-pagina';
+
+export default async function SitioFaqPage() {
+  const pagina = await obtenerPaginaPublica('faq');
+  return <PaginaRenderer bloques={pagina.bloques} />;
+}
