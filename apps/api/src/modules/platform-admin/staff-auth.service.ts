@@ -93,7 +93,9 @@ export class StaffAuthService {
       where: { id: staffId },
     });
     if (!staff || !staff.twoFactorSecret) {
-      throw new UnauthorizedException('Sesión inválida — iniciá sesión de nuevo');
+      throw new UnauthorizedException(
+        'Sesión inválida — iniciá sesión de nuevo',
+      );
     }
 
     const resultado = await verifyTotp({

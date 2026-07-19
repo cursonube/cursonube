@@ -42,7 +42,8 @@ export class CheckoutController {
   @Post('pagos/mercado-pago/checkout-webhook')
   @HttpCode(HttpStatus.OK)
   async webhook(
-    @Body() body: { type: string; data: { id: string }; user_id?: number | string },
+    @Body()
+    body: { type: string; data: { id: string }; user_id?: number | string },
     @Headers('x-signature') xSignature: string | undefined,
     @Headers('x-request-id') xRequestId: string | undefined,
   ) {

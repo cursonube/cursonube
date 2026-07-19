@@ -1,0 +1,40 @@
+name: CI
+
+# Documento 14, sección 4 — gate obligatorio antes de cualquier deploy: un
+# fallo acá debe bloquear el deploy, nunca se despliega código que no pasó
+# sus propios checks. Vercel/Railway están configurados para esperar a que
+# este workflow termine en verde antes de promover un deploy (ver guía de
+# despliegue).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # El postinstall automático de @prisma/client no encuentra el schema
+      # en este layout de monorepo (mismo comportamiento visto armando el
+      # Dockerfile) — se genera explícito antes de type-check/test.
+      - run: pnpm --filter @cursonube/api exec prisma generate
+
+      - run: pnpm lint
+
+      - run: pnpm type-check
+
+      - run: pnpm test

@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/security/current-user.decorator';
 import type { SessionTokenPayload } from '../../common/security/jwt.config';
@@ -24,12 +33,18 @@ export class PlatformAdminController {
   }
 
   @Post('academias/:id/suspender')
-  suspender(@Param('id') id: string, @CurrentUser() staff: SessionTokenPayload) {
+  suspender(
+    @Param('id') id: string,
+    @CurrentUser() staff: SessionTokenPayload,
+  ) {
     return this.platformAdminService.suspender(id, staff);
   }
 
   @Post('academias/:id/reactivar')
-  reactivar(@Param('id') id: string, @CurrentUser() staff: SessionTokenPayload) {
+  reactivar(
+    @Param('id') id: string,
+    @CurrentUser() staff: SessionTokenPayload,
+  ) {
     return this.platformAdminService.reactivar(id, staff);
   }
 

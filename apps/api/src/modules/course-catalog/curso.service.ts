@@ -238,9 +238,9 @@ export class CursoService {
 
     let puedeComprarse = true;
     if (curso.tipoAcceso === 'PagoUnico') {
-      const cuenta = await this.tenantScopedPrisma.cuentaPagoCreador.findFirst(
-        { where: { proveedor: 'MercadoPago', estadoConexion: 'Conectada' } },
-      );
+      const cuenta = await this.tenantScopedPrisma.cuentaPagoCreador.findFirst({
+        where: { proveedor: 'MercadoPago', estadoConexion: 'Conectada' },
+      });
       puedeComprarse = !!cuenta;
     }
 

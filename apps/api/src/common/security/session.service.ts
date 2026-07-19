@@ -135,7 +135,10 @@ export class SessionService {
   }
 
   /** Documento 7, sección 6 — correlaciona el paso 1 (credenciales) y 2 (TOTP) del login de Staff. */
-  issueStaff2faPendingCookie(res: Response, payload: Staff2faPendingTokenPayload) {
+  issueStaff2faPendingCookie(
+    res: Response,
+    payload: Staff2faPendingTokenPayload,
+  ) {
     const token = this.jwtService.sign(payload, {
       secret: JWT_ACCESS_SECRET,
       expiresIn: STAFF_2FA_PENDING_TOKEN_EXPIRES_IN,

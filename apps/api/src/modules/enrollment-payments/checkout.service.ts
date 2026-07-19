@@ -116,9 +116,9 @@ export class CheckoutService {
     const identidad = await this.resolveIdentidad(dto, req, tenantId);
 
     if (identidad.alumnoId) {
-      const yaInscripto = await this.tenantScopedPrisma.inscripcion.findFirst(
-        { where: { alumnoId: identidad.alumnoId, cursoId } },
-      );
+      const yaInscripto = await this.tenantScopedPrisma.inscripcion.findFirst({
+        where: { alumnoId: identidad.alumnoId, cursoId },
+      });
       if (yaInscripto) {
         throw new ConflictException('Ya estás inscripto en este curso');
       }
@@ -202,7 +202,11 @@ export class CheckoutService {
       if (!alumno) {
         throw new UnauthorizedException('Sesión inválida');
       }
-      return { alumnoId: alumno.id, nombre: alumno.nombre, email: alumno.email };
+      return {
+        alumnoId: alumno.id,
+        nombre: alumno.nombre,
+        email: alumno.email,
+      };
     }
 
     if (!dto.nombre || !dto.email) {
@@ -261,95 +265,92 @@ export class CheckoutService {
       return { procesado: false };
     }
 
-    return this.tenantContext.run(
-      { tenantId: cuenta.tenantId },
-      async () => {
-        const accessToken = this.encryptionService.decrypt(
-          cuenta.accessTokenEncriptado,
+    return this.tenantContext.run({ tenantId: cuenta.tenantId }, async () => {
+      const accessToken = this.encryptionService.decrypt(
+        cuenta.accessTokenEncriptado,
+      );
+      const response = await fetch(`${MP_PAYMENTS_URL}/${dataId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) {
+        this.logger.error(
+          `No se pudo consultar el pago ${dataId} en Mercado Pago`,
         );
-        const response = await fetch(`${MP_PAYMENTS_URL}/${dataId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (!response.ok) {
-          this.logger.error(
-            `No se pudo consultar el pago ${dataId} en Mercado Pago`,
-          );
-          return { procesado: false };
-        }
-        const detalle = (await response.json()) as MpPaymentDetail;
+        return { procesado: false };
+      }
+      const detalle = (await response.json()) as MpPaymentDetail;
 
-        if (detalle.status === 'refunded' || detalle.status === 'charged_back') {
-          return this.procesarReembolso(dataId);
-        }
-        if (detalle.status !== 'approved') {
-          // rechazado/cancelado/pendiente: sin Inscripcion ni Pago que crear
-          // (Documento 8, sección 3, punto 3 — solo "aprobado" activa algo).
-          return { procesado: true, estado: detalle.status };
-        }
+      if (detalle.status === 'refunded' || detalle.status === 'charged_back') {
+        return this.procesarReembolso(dataId);
+      }
+      if (detalle.status !== 'approved') {
+        // rechazado/cancelado/pendiente: sin Inscripcion ni Pago que crear
+        // (Documento 8, sección 3, punto 3 — solo "aprobado" activa algo).
+        return { procesado: true, estado: detalle.status };
+      }
 
-        const referencia = this.verificarExternalReference(
-          detalle.external_reference,
-        );
+      const referencia = this.verificarExternalReference(
+        detalle.external_reference,
+      );
 
-        const pagoExistente = await this.tenantScopedPrisma.pago.findFirst({
-          where: { externalPaymentId: dataId },
-        });
-        if (pagoExistente) {
-          return { procesado: true, estado: 'Aprobado' };
-        }
+      const pagoExistente = await this.tenantScopedPrisma.pago.findFirst({
+        where: { externalPaymentId: dataId },
+      });
+      if (pagoExistente) {
+        return { procesado: true, estado: 'Aprobado' };
+      }
 
-        const alumno = await this.resolverAlumnoParaWebhook(
-          referencia,
-          cuenta.tenantId,
-        );
+      const alumno = await this.resolverAlumnoParaWebhook(
+        referencia,
+        cuenta.tenantId,
+      );
 
-        let inscripcion = await this.tenantScopedPrisma.inscripcion.findFirst({
-          where: { alumnoId: alumno.id, cursoId: referencia.cursoId },
-        });
-        if (!inscripcion) {
-          inscripcion = await this.tenantScopedPrisma.inscripcion.create({
-            data: {
-              id: generateId(),
-              tenantId: cuenta.tenantId,
-              alumnoId: alumno.id,
-              cursoId: referencia.cursoId,
-              estado: 'Activa',
-            },
-          });
-        }
-
-        await this.tenantScopedPrisma.pago.create({
+      let inscripcion = await this.tenantScopedPrisma.inscripcion.findFirst({
+        where: { alumnoId: alumno.id, cursoId: referencia.cursoId },
+      });
+      if (!inscripcion) {
+        inscripcion = await this.tenantScopedPrisma.inscripcion.create({
           data: {
             id: generateId(),
             tenantId: cuenta.tenantId,
-            inscripcionId: inscripcion.id,
-            proveedor: 'MercadoPago',
-            externalPaymentId: dataId,
-            montoCentavos: Math.round(detalle.transaction_amount * 100),
-            moneda: detalle.currency_id,
-            estado: 'Aprobado',
+            alumnoId: alumno.id,
+            cursoId: referencia.cursoId,
+            estado: 'Activa',
           },
         });
+      }
 
-        // Documento 1, D6 / Documento 18, sección 2 — email de bienvenida.
-        // El webhook no tiene response al browser del comprador (es
-        // servidor a servidor con Mercado Pago), así que este es el único
-        // punto donde se le puede avisar que su compra se confirmó.
-        const [curso, academia] = await Promise.all([
-          this.tenantScopedPrisma.curso.findFirst({
-            where: { id: referencia.cursoId },
-          }),
-          this.prisma.academia.findFirst({ where: { id: cuenta.tenantId } }),
-        ]);
-        void this.emailService.send({
-          to: alumno.email,
-          subject: `¡Tu compra en ${academia?.nombre ?? 'tu academia'} fue confirmada!`,
-          html: `<p>Hola ${alumno.nombre},</p><p>Tu pago por el curso <strong>${curso?.titulo ?? ''}</strong> en ${academia?.nombre ?? 'tu academia'} fue aprobado. Ya tenés acceso.</p>`,
-        });
+      await this.tenantScopedPrisma.pago.create({
+        data: {
+          id: generateId(),
+          tenantId: cuenta.tenantId,
+          inscripcionId: inscripcion.id,
+          proveedor: 'MercadoPago',
+          externalPaymentId: dataId,
+          montoCentavos: Math.round(detalle.transaction_amount * 100),
+          moneda: detalle.currency_id,
+          estado: 'Aprobado',
+        },
+      });
 
-        return { procesado: true, estado: 'Aprobado' };
-      },
-    );
+      // Documento 1, D6 / Documento 18, sección 2 — email de bienvenida.
+      // El webhook no tiene response al browser del comprador (es
+      // servidor a servidor con Mercado Pago), así que este es el único
+      // punto donde se le puede avisar que su compra se confirmó.
+      const [curso, academia] = await Promise.all([
+        this.tenantScopedPrisma.curso.findFirst({
+          where: { id: referencia.cursoId },
+        }),
+        this.prisma.academia.findFirst({ where: { id: cuenta.tenantId } }),
+      ]);
+      void this.emailService.send({
+        to: alumno.email,
+        subject: `¡Tu compra en ${academia?.nombre ?? 'tu academia'} fue confirmada!`,
+        html: `<p>Hola ${alumno.nombre},</p><p>Tu pago por el curso <strong>${curso?.titulo ?? ''}</strong> en ${academia?.nombre ?? 'tu academia'} fue aprobado. Ya tenés acceso.</p>`,
+      });
+
+      return { procesado: true, estado: 'Aprobado' };
+    });
   }
 
   /**

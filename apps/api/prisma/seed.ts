@@ -92,9 +92,14 @@ async function main() {
 
   // Documento 7, sección 2: sin self-registration para CursonubeStaff (dominio
   // interno, no expuesto a academias/alumnos) — la única forma de tener una
-  // primera cuenta es este bootstrap. Contraseña de desarrollo únicamente;
-  // `update: {}` para no resetearla en reseeds si ya se cambió a mano.
-  const BOOTSTRAP_STAFF_EMAIL = 'admin@cursonube.com';
+  // primera cuenta es este bootstrap. La contraseña se toma de una env var
+  // (nunca hardcodeada) precisamente para que un `db:seed` en producción no
+  // deje una cuenta SuperAdmin con una contraseña de desarrollo conocida. No
+  // resetea la contraseña en reseeds si la cuenta ya existe.
+  const BOOTSTRAP_STAFF_EMAIL =
+    process.env.STAFF_BOOTSTRAP_EMAIL ?? 'admin@cursonube.com';
+  const BOOTSTRAP_STAFF_PASSWORD =
+    process.env.STAFF_BOOTSTRAP_PASSWORD ?? 'dev-local-staff-password';
   const staffExistente = await prisma.cursonubeStaff.findUnique({
     where: { email: BOOTSTRAP_STAFF_EMAIL },
   });
@@ -103,7 +108,7 @@ async function main() {
       data: {
         id: generateId(),
         email: BOOTSTRAP_STAFF_EMAIL,
-        passwordHash: await argon2.hash('dev-local-staff-password'),
+        passwordHash: await argon2.hash(BOOTSTRAP_STAFF_PASSWORD),
         rol: 'SuperAdmin',
       },
     });

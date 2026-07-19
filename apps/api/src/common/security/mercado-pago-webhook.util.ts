@@ -38,7 +38,9 @@ export function verifyMercadoPagoWebhookSignature(
   }
 
   const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
-  const firmaEsperada = createHmac('sha256', secret).update(manifest).digest('hex');
+  const firmaEsperada = createHmac('sha256', secret)
+    .update(manifest)
+    .digest('hex');
 
   const bufferEsperado = Buffer.from(firmaEsperada, 'utf8');
   const bufferRecibido = Buffer.from(v1, 'utf8');

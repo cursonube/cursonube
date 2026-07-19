@@ -1,0 +1,16 @@
+node_modules
+.pnpm-store
+**/node_modules
+**/dist
+**/build
+**/.next
+**/.turbo
+**/coverage
+.env
+.env.*
+!.env.example
+*.log
+.git
+.vscode
+.idea
+apps/api/storage
