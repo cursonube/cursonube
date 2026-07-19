@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { generateId } from '../../common/id/generate-id';
+import { EmailService } from '../../common/email/email.service';
 import { ACCESS_TOKEN_COOKIE } from '../../common/security/jwt.config';
 import { SessionService } from '../../common/security/session.service';
 import {
@@ -29,6 +30,7 @@ export class InscripcionService {
     private readonly tenantScopedPrisma: TenantScopedPrismaClient,
     private readonly tenantContext: TenantContextService,
     private readonly sessionService: SessionService,
+    private readonly emailService: EmailService,
   ) {}
 
   async inscribirseGratis(
@@ -85,6 +87,18 @@ export class InscripcionService {
         purpose: 'set-password',
       });
     }
+
+    // Documento 1, D6 / Documento 18, sección 2 — email de bienvenida
+    // informativo. No bloquea la respuesta ni el flujo si falla (ver
+    // EmailService).
+    const academia = await this.tenantScopedPrisma.academia.findFirst({
+      where: { id: tenantId },
+    });
+    void this.emailService.send({
+      to: alumno.email,
+      subject: `¡Bienvenido a ${academia?.nombre ?? 'tu academia'}!`,
+      html: `<p>Hola ${alumno.nombre},</p><p>Te inscribiste correctamente al curso <strong>${curso.titulo}</strong> en ${academia?.nombre ?? 'tu academia'}.</p>`,
+    });
 
     return { inscripcion, requierePassword };
   }

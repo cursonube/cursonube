@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EmailModule } from '../../common/email/email.module';
 import { SecurityModule } from '../../common/security/security.module';
 import { AlumnoAdminController } from './alumno-admin.controller';
 import { AlumnoAdminService } from './alumno-admin.service';
@@ -26,7 +27,7 @@ import { ProgresoClaseService } from './progreso-clase.service';
  * hasta entonces).
  */
 @Module({
-  imports: [SecurityModule],
+  imports: [SecurityModule, EmailModule],
   controllers: [
     InscripcionController,
     CheckoutController,

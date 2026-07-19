@@ -10,6 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { generateId } from '../../common/id/generate-id';
+import { EmailService } from '../../common/email/email.service';
 import {
   TENANT_SCOPED_PRISMA,
   TenantScopedPrismaClient,
@@ -83,6 +84,7 @@ export class CheckoutService {
     private readonly tenantContext: TenantContextService,
     private readonly encryptionService: EncryptionService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async crearPreferencia(cursoId: string, dto: CheckoutDto, req: Request) {
@@ -327,6 +329,22 @@ export class CheckoutService {
             moneda: detalle.currency_id,
             estado: 'Aprobado',
           },
+        });
+
+        // Documento 1, D6 / Documento 18, sección 2 — email de bienvenida.
+        // El webhook no tiene response al browser del comprador (es
+        // servidor a servidor con Mercado Pago), así que este es el único
+        // punto donde se le puede avisar que su compra se confirmó.
+        const [curso, academia] = await Promise.all([
+          this.tenantScopedPrisma.curso.findFirst({
+            where: { id: referencia.cursoId },
+          }),
+          this.prisma.academia.findFirst({ where: { id: cuenta.tenantId } }),
+        ]);
+        void this.emailService.send({
+          to: alumno.email,
+          subject: `¡Tu compra en ${academia?.nombre ?? 'tu academia'} fue confirmada!`,
+          html: `<p>Hola ${alumno.nombre},</p><p>Tu pago por el curso <strong>${curso?.titulo ?? ''}</strong> en ${academia?.nombre ?? 'tu academia'} fue aprobado. Ya tenés acceso.</p>`,
         });
 
         return { procesado: true, estado: 'Aprobado' };
