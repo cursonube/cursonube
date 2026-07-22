@@ -59,6 +59,13 @@ async function proxy(
   if (responseContentType) {
     responseHeaders.set('content-type', responseContentType);
   }
+  // Con `redirect: 'manual'` el status 3xx se preserva, pero fetch no
+  // reenvía el header Location solo — sin esto el browser recibe un
+  // redirect sin destino (ej. el OAuth de Mercado Pago, Documento 8).
+  const location = apiResponse.headers.get('location');
+  if (location) {
+    responseHeaders.set('location', location);
+  }
   for (const setCookie of apiResponse.headers.getSetCookie()) {
     responseHeaders.append('set-cookie', setCookie);
   }
