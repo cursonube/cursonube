@@ -40,7 +40,9 @@ export default async function CursoPublicoPage({
   try {
     curso = await serverApiFetch<CursoPublico>(`cursos/publico/${slug}`);
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
+    // Mismo caso que en obtener-pagina.ts: 401 acá es "sin TenantContext"
+    // (subdominio inexistente), no un problema de auth — tratarlo como 404.
+    if (err instanceof ApiError && (err.status === 404 || err.status === 401)) {
       notFound();
     }
     throw err;
