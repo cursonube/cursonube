@@ -8,8 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +21,152 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/**
+ * Design tokens para las herramientas internas (Staff, Creator/admin,
+ * Alumno/panel) — deliberadamente escapados bajo `.p-shell` y no en `:root`
+ * para no afectar el sitio de marketing ni las plantillas públicas de cada
+ * academia, que tienen su propia identidad visual (Documento 5).
+ *
+ * Valores tomados de los design tokens públicos de Shopify Polaris
+ * (polaris.shopify.com/tokens) — no son una copia de assets de marca, son
+ * los mismos números que Shopify publica para que cualquiera los use.
+ */
+.p-shell {
+  --p-font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont,
+    "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --p-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
+
+  --p-text-2xs: 11px;
+  --p-text-xs: 12px;
+  --p-text-sm: 13px;
+  --p-text-base: 14px;
+  --p-text-md: 16px;
+  --p-text-lg: 18px;
+  --p-text-xl: 20px;
+  --p-text-2xl: 24px;
+  --p-text-3xl: 30px;
+  --p-text-4xl: 36px;
+
+  --p-weight-regular: 450;
+  --p-weight-medium: 550;
+  --p-weight-semibold: 650;
+  --p-weight-bold: 700;
+
+  --p-leading-tight: 20px;
+  --p-leading-normal: 24px;
+  --p-leading-loose: 28px;
+
+  --p-space-1: 4px;
+  --p-space-2: 8px;
+  --p-space-3: 12px;
+  --p-space-4: 16px;
+  --p-space-5: 20px;
+  --p-space-6: 24px;
+  --p-space-8: 32px;
+  --p-space-10: 40px;
+
+  --p-radius-sm: 4px;
+  --p-radius-md: 8px;
+  --p-radius-lg: 12px;
+  --p-radius-xl: 16px;
+  --p-radius-full: 9999px;
+
+  --p-shadow-card: 0px 1px 0px 0px rgba(26, 26, 26, 0.07);
+  --p-shadow-popover: 0px 4px 6px -2px rgba(26, 26, 26, 0.2);
+  --p-shadow-button: 0px -1px 0px 0px #b5b5b5 inset,
+    0px 0px 0px 1px rgba(0, 0, 0, 0.1) inset,
+    0px 0.5px 0px 1.5px #fff inset;
+  --p-shadow-button-primary: 0px -1px 0px 1px rgba(0, 0, 0, 0.8) inset,
+    0px 0px 0px 1px rgba(48, 48, 48, 1) inset,
+    0px 0.5px 0px 1.5px rgba(255, 255, 255, 0.25) inset;
+
+  --p-color-bg: #f1f1f1;
+  --p-color-surface: #ffffff;
+  --p-color-surface-hover: #f7f7f7;
+  --p-color-surface-secondary: #f7f7f7;
+  --p-color-surface-secondary-hover: #f1f1f1;
+
+  --p-color-text: #303030;
+  --p-color-text-secondary: #616161;
+  --p-color-text-disabled: #b5b5b5;
+  --p-color-text-link: #005bd3;
+  --p-color-text-link-hover: #004299;
+
+  --p-color-border: #e3e3e3;
+  --p-color-border-hover: #cccccc;
+  --p-color-border-focus: #005bd3;
+
+  --p-color-icon: #4a4a4a;
+  --p-color-icon-secondary: #8a8a8a;
+
+  --p-color-action-primary: #303030;
+  --p-color-action-primary-hover: #1a1a1a;
+  --p-color-on-action-primary: #ffffff;
+
+  --p-color-success: #014b40;
+  --p-color-success-secondary: #047b5d;
+  --p-color-success-bg: #cdfed4;
+  --p-color-success-bg-hover: #afeabf;
+  --p-color-success-border: #92fcac;
+
+  --p-color-warning: #5e4200;
+  --p-color-warning-secondary: #956f00;
+  --p-color-warning-bg: #fff1e3;
+  --p-color-warning-border: #ffc879;
+
+  --p-color-critical: #8e0b21;
+  --p-color-critical-secondary: #c70a24;
+  --p-color-critical-bg: #fee8eb;
+  --p-color-critical-bg-hover: #fee1e6;
+  --p-color-critical-border: #fec1c7;
+
+  --p-color-info: #003a5a;
+  --p-color-info-bg: #eaf4ff;
+  --p-color-info-border: #a8d8ff;
+
+  background: var(--p-color-bg);
+  color: var(--p-color-text);
+  font-family: var(--p-font-sans);
+  font-size: var(--p-text-base);
+  font-weight: var(--p-weight-regular);
+  line-height: var(--p-leading-normal);
+}
+
+@media (prefers-color-scheme: dark) {
+  .p-shell {
+    --p-color-bg: #1a1a1a;
+    --p-color-surface: #262626;
+    --p-color-surface-hover: #2e2e2e;
+    --p-color-surface-secondary: #2e2e2e;
+    --p-color-surface-secondary-hover: #363636;
+
+    --p-color-text: #e3e3e3;
+    --p-color-text-secondary: #b5b5b5;
+    --p-color-text-disabled: #6b6b6b;
+    --p-color-text-link: #6db2ff;
+    --p-color-text-link-hover: #9dcbff;
+
+    --p-color-border: #3d3d3d;
+    --p-color-border-hover: #545454;
+    --p-color-border-focus: #6db2ff;
+
+    --p-color-icon: #cccccc;
+    --p-color-icon-secondary: #8a8a8a;
+
+    --p-color-action-primary: #e3e3e3;
+    --p-color-action-primary-hover: #ffffff;
+    --p-color-on-action-primary: #1a1a1a;
+
+    --p-color-success-bg: #12332a;
+    --p-color-success-border: #1e5c48;
+    --p-color-warning-bg: #3a2c10;
+    --p-color-warning-border: #5c4419;
+    --p-color-critical-bg: #3a1418;
+    --p-color-critical-border: #5c2229;
+    --p-color-info-bg: #12233a;
+    --p-color-info-border: #1e3f5c;
+  }
 }

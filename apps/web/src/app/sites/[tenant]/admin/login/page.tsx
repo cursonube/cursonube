@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Banner } from '@/components/ui/banner';
+import { Card } from '@/components/ui/card';
 
 /**
  * Login del panel de gestión (Owner/Administrador/Profesor/Editor) —
@@ -57,68 +61,49 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-5 rounded-xl border border-zinc-200 p-8 dark:border-zinc-800"
-      >
-        <div className="space-y-1 text-center">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Panel de gestión
-          </h1>
-          <p className="text-sm text-zinc-500">
-            Iniciá sesión para administrar tu academia
-          </p>
-        </div>
+    <div className="p-shell flex flex-1 items-center justify-center px-6">
+      <Card className="w-full max-w-sm p-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1 text-center">
+            <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+              Panel de gestión
+            </h1>
+            <p className="text-[13px] text-[var(--p-color-text-secondary)]">
+              Iniciá sesión para administrar tu academia
+            </p>
+          </div>
 
-        {bienvenida && !error && (
-          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
-            ¡Tu academia ya está lista! Iniciá sesión para entrar a tu panel.
-          </p>
-        )}
+          {bienvenida && !error && (
+            <Banner tone="success">
+              ¡Tu academia ya está lista! Iniciá sesión para entrar a tu panel.
+            </Banner>
+          )}
 
-        {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
-            {error}
-          </p>
-        )}
+          {error && <Banner>{error}</Banner>}
 
-        <div className="space-y-1.5">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
+          <TextField
+            label="Email"
             id="email"
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
           />
-        </div>
 
-        <div className="space-y-1.5">
-          <label htmlFor="password" className="text-sm font-medium">
-            Contraseña
-          </label>
-          <input
+          <TextField
+            label="Contraseña"
             id="password"
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
           />
-        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-        >
-          {loading ? 'Ingresando…' : 'Ingresar'}
-        </button>
-      </form>
-    </main>
+          <Button type="submit" variant="primary" disabled={loading} className="w-full">
+            {loading ? 'Ingresando…' : 'Ingresar'}
+          </Button>
+        </form>
+      </Card>
+    </div>
   );
 }

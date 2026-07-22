@@ -39,18 +39,22 @@ export default async function PanelLayout({
   }
 
   return (
-    <div className="flex flex-1 flex-col md:flex-row">
-      <aside className="flex flex-col gap-6 border-b border-zinc-200 p-6 md:w-56 md:border-b-0 md:border-r dark:border-zinc-800">
+    <div className="p-shell flex flex-1 flex-col md:flex-row">
+      <aside className="flex flex-col gap-6 border-b border-[var(--p-color-border)] bg-[var(--p-color-surface)] p-6 md:w-56 md:border-b-0 md:border-r">
         <div>
-          <p className="text-sm font-medium">{alumno.nombre}</p>
-          <p className="text-xs text-zinc-500">{alumno.email}</p>
+          <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+            {alumno.nombre}
+          </p>
+          <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+            {alumno.email}
+          </p>
         </div>
         <nav className="flex flex-row gap-4 md:flex-col md:gap-2">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              className="text-[13px] text-[var(--p-color-text-secondary)] transition hover:text-[var(--p-color-text)]"
             >
               {item.label}
             </Link>

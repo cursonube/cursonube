@@ -1,6 +1,8 @@
 import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
 import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Lead {
   id: string;
@@ -11,9 +13,9 @@ interface Lead {
   createdAt: string;
 }
 
-const ORIGEN_BADGE: Record<Lead['origen'], string> = {
-  Newsletter: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
-  Contacto: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-400',
+const ORIGEN_TONE: Record<Lead['origen'], 'info' | 'neutral'> = {
+  Newsletter: 'info',
+  Contacto: 'neutral',
 };
 
 /**
@@ -33,10 +35,12 @@ export default async function ContactosPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Contactos</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Contactos
+      </h1>
 
       {leads.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-500">
+        <p className="mt-6 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no capturaste ningún contacto — aparecen acá cuando alguien
           se suscribe al newsletter o completa el formulario de contacto de
           tu sitio.
@@ -44,31 +48,28 @@ export default async function ContactosPage() {
       ) : (
         <ul className="mt-6 max-w-2xl space-y-3">
           {leads.map((lead) => (
-            <li
-              key={lead.id}
-              className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{lead.nombre ?? lead.email}</p>
-                  {lead.nombre && (
-                    <p className="text-xs text-zinc-500">{lead.email}</p>
-                  )}
+            <li key={lead.id}>
+              <Card className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                      {lead.nombre ?? lead.email}
+                    </p>
+                    {lead.nombre && (
+                      <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+                        {lead.email}
+                      </p>
+                    )}
+                  </div>
+                  <Badge tone={ORIGEN_TONE[lead.origen]}>{lead.origen}</Badge>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${ORIGEN_BADGE[lead.origen]}`}
-                >
-                  {lead.origen}
-                </span>
-              </div>
-              {lead.mensaje && (
-                <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-                  {lead.mensaje}
+                {lead.mensaje && (
+                  <p className="mt-2 text-[13px] text-[var(--p-color-text)]">{lead.mensaje}</p>
+                )}
+                <p className="mt-2 text-[12px] text-[var(--p-color-text-secondary)]">
+                  {new Date(lead.createdAt).toLocaleString('es-AR')}
                 </p>
-              )}
-              <p className="mt-2 text-xs text-zinc-500">
-                {new Date(lead.createdAt).toLocaleString('es-AR')}
-              </p>
+              </Card>
             </li>
           ))}
         </ul>

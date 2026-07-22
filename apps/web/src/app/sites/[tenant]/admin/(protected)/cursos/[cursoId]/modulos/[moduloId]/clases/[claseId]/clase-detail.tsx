@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 import type { ClaseAdjunto, ClaseCompleta } from './page';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
+import { Banner } from '@/components/ui/banner';
 
 function useApiAction() {
   const router = useRouter();
@@ -32,6 +37,9 @@ const TIPO_LABEL: Record<ClaseAdjunto['tipo'], string> = {
   Archivo: 'Archivo',
   Link: 'Link',
 };
+
+const ICON_BUTTON =
+  'rounded-[var(--p-radius-sm)] px-1.5 text-xs text-[var(--p-color-text-secondary)] transition hover:bg-[var(--p-color-surface-secondary-hover)] disabled:opacity-30';
 
 function AdjuntoRow({
   claseId,
@@ -68,33 +76,25 @@ function AdjuntoRow({
   }
 
   return (
-    <li className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900">
+    <li className="flex items-center justify-between rounded-[var(--p-radius-sm)] px-2 py-1.5 text-[13px] hover:bg-[var(--p-color-surface-secondary-hover)]">
       <a
         href={adjunto.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex-1 text-zinc-700 underline dark:text-zinc-300"
+        className="flex-1 text-[var(--p-color-text-link)] underline"
       >
         [{TIPO_LABEL[adjunto.tipo]}] {adjunto.nombreVisible}
       </a>
       <div className="flex gap-1">
-        <button
-          disabled={isFirst || loading}
-          onClick={() => mover(-1)}
-          className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 disabled:opacity-30 dark:hover:bg-zinc-700"
-        >
+        <button disabled={isFirst || loading} onClick={() => mover(-1)} className={ICON_BUTTON}>
           ↑
         </button>
-        <button
-          disabled={isLast || loading}
-          onClick={() => mover(1)}
-          className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 disabled:opacity-30 dark:hover:bg-zinc-700"
-        >
+        <button disabled={isLast || loading} onClick={() => mover(1)} className={ICON_BUTTON}>
           ↓
         </button>
         <button
           onClick={eliminar}
-          className="rounded px-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+          className="rounded-[var(--p-radius-sm)] px-1.5 text-xs text-[var(--p-color-critical-secondary)] transition hover:bg-[var(--p-color-critical-bg)]"
         >
           Eliminar
         </button>
@@ -125,39 +125,31 @@ function AgregarAdjuntoForm({ claseId }: { claseId: string }) {
       }}
       className="mt-3 flex flex-wrap gap-2"
     >
-      <select
-        value={tipo}
-        onChange={(e) => setTipo(e.target.value as ClaseAdjunto['tipo'])}
-        className="rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      >
+      <Select value={tipo} onChange={(e) => setTipo(e.target.value as ClaseAdjunto['tipo'])}>
         <option value="Link">Link</option>
         <option value="Pdf">PDF</option>
         <option value="Archivo">Archivo</option>
-      </select>
-      <input
+      </Select>
+      <TextField
         placeholder="Nombre visible"
         required
         value={nombreVisible}
         onChange={(e) => setNombreVisible(e.target.value)}
-        className="flex-1 rounded-md border border-zinc-300 px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="flex-1"
       />
-      <input
+      <TextField
         placeholder="https://…"
         type="url"
         required
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        className="flex-1 rounded-md border border-zinc-300 px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="flex-1"
       />
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-md border border-zinc-300 px-3 py-1 text-sm transition hover:border-zinc-500 disabled:opacity-50 dark:border-zinc-700"
-      >
+      <Button type="submit" disabled={loading}>
         Agregar
-      </button>
+      </Button>
       {error && (
-        <p className="w-full text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="w-full text-xs text-[var(--p-color-critical-secondary)]">{error}</p>
       )}
     </form>
   );
@@ -203,78 +195,54 @@ export function ClaseDetail({
     <div>
       <Link
         href={`/admin/cursos/${cursoId}`}
-        className="text-sm text-zinc-500 hover:underline"
+        className="text-[13px] text-[var(--p-color-text-secondary)] hover:underline"
       >
         ← Volver al curso
       </Link>
 
-      <h1 className="mt-2 text-xl font-semibold tracking-tight">{clase.titulo}</h1>
+      <h1 className="mt-2 text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        {clase.titulo}
+      </h1>
 
       <form onSubmit={guardar} className="mt-6 max-w-lg space-y-4">
-        {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
-            {error}
-          </p>
-        )}
+        {error && <Banner>{error}</Banner>}
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">Título</label>
-          <input
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+        <TextField label="Título" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">
-            Video de YouTube No Listado
-            {clase.videoExternalId && (
-              <span className="ml-2 font-normal text-zinc-500">
-                (actual: {clase.videoExternalId})
-              </span>
-            )}
-          </label>
-          <input
-            placeholder="Pegá una URL nueva para reemplazarlo…"
-            type="url"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+        <TextField
+          label={
+            clase.videoExternalId
+              ? `Video de YouTube No Listado (actual: ${clase.videoExternalId})`
+              : 'Video de YouTube No Listado'
+          }
+          placeholder="Pegá una URL nueva para reemplazarlo…"
+          type="url"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+        />
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">Contenido de texto</label>
-          <textarea
-            rows={4}
-            value={contenidoTexto}
-            onChange={(e) => setContenidoTexto(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+        <Textarea
+          label="Contenido de texto"
+          rows={4}
+          value={contenidoTexto}
+          onChange={(e) => setContenidoTexto(e.target.value)}
+        />
 
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">Duración estimada (minutos)</label>
-          <input
-            type="number"
-            min="1"
-            value={duracion}
-            onChange={(e) => setDuracion(e.target.value)}
-            className="w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+        <TextField
+          label="Duración estimada (minutos)"
+          type="number"
+          min="1"
+          value={duracion}
+          onChange={(e) => setDuracion(e.target.value)}
+          className="w-32"
+        />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-        >
+        <Button type="submit" variant="primary" disabled={loading}>
           {loading ? 'Guardando…' : 'Guardar cambios'}
-        </button>
+        </Button>
       </form>
 
-      <h2 className="mt-8 mb-2 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-2 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Adjuntos
       </h2>
       <ul className="max-w-lg">

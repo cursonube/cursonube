@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
 import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
+import { Card } from '@/components/ui/card';
 
 interface DashboardData {
   checklist: {
@@ -68,17 +69,24 @@ export default async function InicioPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Inicio</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Inicio
+      </h1>
 
       {pendientes.length > 0 && (
-        <div className="mt-4 max-w-xl rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="mb-2 text-sm font-medium">Primeros pasos</p>
-          <ul className="space-y-1.5 text-sm">
+        <Card className="mt-4 max-w-xl p-4">
+          <p className="mb-2 text-[13px] font-[550] text-[var(--p-color-text)]">
+            Primeros pasos
+          </p>
+          <ul className="space-y-1.5 text-[13px]">
             {pendientes.map((item) => (
-              <li key={item.texto} className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+              <li
+                key={item.texto}
+                className="flex items-center gap-2 text-[var(--p-color-text-secondary)]"
+              >
                 <span>☐</span>
                 {item.href ? (
-                  <Link href={item.href} className="underline">
+                  <Link href={item.href} className="text-[var(--p-color-text-link)] underline">
                     {item.texto}
                   </Link>
                 ) : (
@@ -87,45 +95,55 @@ export default async function InicioPage() {
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">Ventas del mes</p>
-          <p className="mt-1 text-2xl font-semibold">
+        <Card className="p-4">
+          <p className="text-[12px] text-[var(--p-color-text-secondary)]">Ventas del mes</p>
+          <p className="mt-1 text-[length:var(--p-text-2xl)] font-[650] text-[var(--p-color-text)]">
             {formatMonto(metricas.ventasDelMesCentavos)}
           </p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">Alumnos nuevos (mes)</p>
-          <p className="mt-1 text-2xl font-semibold">{metricas.alumnosNuevosDelMes}</p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">Cursos publicados</p>
-          <p className="mt-1 text-2xl font-semibold">{metricas.cursosPublicados}</p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">Tasa de finalización</p>
-          <p className="mt-1 text-2xl font-semibold">
+        </Card>
+        <Card className="p-4">
+          <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+            Alumnos nuevos (mes)
+          </p>
+          <p className="mt-1 text-[length:var(--p-text-2xl)] font-[650] text-[var(--p-color-text)]">
+            {metricas.alumnosNuevosDelMes}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[12px] text-[var(--p-color-text-secondary)]">Cursos publicados</p>
+          <p className="mt-1 text-[length:var(--p-text-2xl)] font-[650] text-[var(--p-color-text)]">
+            {metricas.cursosPublicados}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+            Tasa de finalización
+          </p>
+          <p className="mt-1 text-[length:var(--p-text-2xl)] font-[650] text-[var(--p-color-text)]">
             {metricas.tasaFinalizacionPromedio}%
           </p>
-        </div>
+        </Card>
       </div>
 
-      <h2 className="mt-8 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Actividad reciente
       </h2>
       {actividadReciente.length === 0 ? (
-        <p className="text-sm text-zinc-500">Todavía no hay actividad para mostrar.</p>
+        <p className="text-[13px] text-[var(--p-color-text-secondary)]">
+          Todavía no hay actividad para mostrar.
+        </p>
       ) : (
         <ul className="max-w-xl space-y-2">
           {actividadReciente.map((evento, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm">
+            <li key={i} className="flex items-start gap-2 text-[13px]">
               <span>{TIPO_ICONO[evento.tipo]}</span>
               <div>
                 <p>{evento.descripcion}</p>
-                <p className="text-xs text-zinc-500">
+                <p className="text-[12px] text-[var(--p-color-text-secondary)]">
                   {new Date(evento.fecha).toLocaleString('es-AR')}
                 </p>
               </div>

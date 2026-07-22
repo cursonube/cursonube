@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
 import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { buttonClassName } from '@/components/ui/button';
 
 interface Curso {
   id: string;
@@ -12,9 +15,9 @@ interface Curso {
   moneda: string | null;
 }
 
-const ESTADO_BADGE: Record<Curso['estado'], string> = {
-  Borrador: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
-  Publicado: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',
+const ESTADO_TONE: Record<Curso['estado'], 'neutral' | 'success'> = {
+  Borrador: 'neutral',
+  Publicado: 'success',
 };
 
 /** Documento 10, sección 1 — "Cursos": listado, creación y edición. */
@@ -32,40 +35,36 @@ export default async function CursosPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">Cursos</h1>
-        <Link
-          href="/admin/cursos/nuevo"
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900"
-        >
+        <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+          Cursos
+        </h1>
+        <Link href="/admin/cursos/nuevo" className={buttonClassName('primary')}>
           Crear curso
         </Link>
       </div>
 
       {cursos.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-500">
+        <p className="mt-6 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no creaste ningún curso.
         </p>
       ) : (
         <ul className="mt-6 space-y-3">
           {cursos.map((curso) => (
             <li key={curso.id}>
-              <Link
-                href={`/admin/cursos/${curso.id}`}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-              >
-                <div>
-                  <p className="font-medium">{curso.titulo}</p>
-                  <p className="text-xs text-zinc-500">
-                    {curso.tipoAcceso === 'Gratis'
-                      ? 'Gratis'
-                      : `${curso.moneda} ${((curso.precioCentavos ?? 0) / 100).toLocaleString('es-AR')}`}
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${ESTADO_BADGE[curso.estado]}`}
-                >
-                  {curso.estado}
-                </span>
+              <Link href={`/admin/cursos/${curso.id}`}>
+                <Card className="flex items-center justify-between p-4 transition hover:border-[var(--p-color-border-hover)]">
+                  <div>
+                    <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                      {curso.titulo}
+                    </p>
+                    <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+                      {curso.tipoAcceso === 'Gratis'
+                        ? 'Gratis'
+                        : `${curso.moneda} ${((curso.precioCentavos ?? 0) / 100).toLocaleString('es-AR')}`}
+                    </p>
+                  </div>
+                  <Badge tone={ESTADO_TONE[curso.estado]}>{curso.estado}</Badge>
+                </Card>
               </Link>
             </li>
           ))}

@@ -1,4 +1,5 @@
 import { serverApiFetch } from '@/lib/api-server';
+import { Card } from '@/components/ui/card';
 
 interface Estadisticas {
   tenantsActivos: number;
@@ -6,12 +7,14 @@ interface Estadisticas {
   mrrCentavos: number;
 }
 
-function Card({ titulo, valor }: { titulo: string; valor: string }) {
+function StatCard({ titulo, valor }: { titulo: string; valor: string }) {
   return (
-    <div className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800">
-      <p className="text-sm text-zinc-500">{titulo}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight">{valor}</p>
-    </div>
+    <Card className="p-6">
+      <p className="text-[13px] text-[var(--p-color-text-secondary)]">{titulo}</p>
+      <p className="mt-1 text-[length:var(--p-text-2xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        {valor}
+      </p>
+    </Card>
   );
 }
 
@@ -21,11 +24,13 @@ export default async function StaffEstadisticasPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Estadísticas</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Estadísticas
+      </h1>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card titulo="Tenants activos" valor={String(stats.tenantsActivos)} />
-        <Card titulo="Altas del mes" valor={String(stats.altasDelMes)} />
-        <Card
+        <StatCard titulo="Tenants activos" valor={String(stats.tenantsActivos)} />
+        <StatCard titulo="Altas del mes" valor={String(stats.altasDelMes)} />
+        <StatCard
           titulo="MRR total"
           valor={new Intl.NumberFormat('es-AR', {
             style: 'currency',

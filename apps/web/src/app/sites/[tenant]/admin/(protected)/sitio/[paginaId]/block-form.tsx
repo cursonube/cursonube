@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import type { FieldDef, ListFieldDef, TipoBloque } from './block-registry';
 import { getBlockTypeDef } from './block-registry';
+import { TextField } from '@/components/ui/text-field';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 function FieldInput({
   field,
@@ -17,39 +21,29 @@ function FieldInput({
 
   if (field.type === 'textarea') {
     return (
-      <textarea
-        rows={3}
-        value={stringValue}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-      />
+      <Textarea rows={3} value={stringValue} onChange={(e) => onChange(e.target.value)} />
     );
   }
 
   if (field.type === 'select') {
     return (
-      <select
-        value={stringValue}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      >
+      <Select value={stringValue} onChange={(e) => onChange(e.target.value)}>
         <option value="">—</option>
         {field.options?.map((opt) => (
           <option key={opt} value={opt}>
             {opt}
           </option>
         ))}
-      </select>
+      </Select>
     );
   }
 
   if (field.type === 'number') {
     return (
-      <input
+      <TextField
         type="number"
         value={stringValue}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
       />
     );
   }
@@ -60,12 +54,7 @@ function FieldInput({
     // <input type="url"> exige formato absoluto vía validación nativa del
     // browser y rechazaría el segundo caso, que es real (default-blocks.ts
     // usa "/cursos" como linkBoton por defecto).
-    <input
-      type="text"
-      value={stringValue}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-    />
+    <TextField type="text" value={stringValue} onChange={(e) => onChange(e.target.value)} />
   );
 }
 
@@ -101,16 +90,20 @@ function ListFieldEditor({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{listField.label}</label>
+      <label className="text-[13px] font-[550] text-[var(--p-color-text)]">
+        {listField.label}
+      </label>
       <div className="space-y-3">
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-800"
+            className="space-y-2 rounded-[var(--p-radius-md)] border border-[var(--p-color-border)] p-3"
           >
             {listField.itemFields.map((field) => (
               <div key={field.key} className="space-y-1">
-                <label className="text-xs text-zinc-500">{field.label}</label>
+                <label className="text-xs text-[var(--p-color-text-secondary)]">
+                  {field.label}
+                </label>
                 <FieldInput
                   field={field}
                   value={item[field.key]}
@@ -121,20 +114,16 @@ function ListFieldEditor({
             <button
               type="button"
               onClick={() => eliminarItem(idx)}
-              className="text-xs text-red-600 hover:underline dark:text-red-400"
+              className="text-xs text-[var(--p-color-critical-secondary)] hover:underline"
             >
               Eliminar
             </button>
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={agregarItem}
-        className="rounded-md border border-zinc-300 px-3 py-1 text-xs transition hover:border-zinc-500 dark:border-zinc-700"
-      >
+      <Button type="button" onClick={agregarItem} className="text-xs">
         Agregar {listField.label.toLowerCase()}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -161,11 +150,13 @@ export function BlockForm({
         e.preventDefault();
         onSubmit(values);
       }}
-      className="space-y-3 rounded-md bg-zinc-50 p-4 dark:bg-zinc-900"
+      className="space-y-3 rounded-[var(--p-radius-md)] bg-[var(--p-color-surface-secondary)] p-4"
     >
       {def.fields.map((field) => (
         <div key={field.key} className="space-y-1.5">
-          <label className="text-sm font-medium">{field.label}</label>
+          <label className="text-[13px] font-[550] text-[var(--p-color-text)]">
+            {field.label}
+          </label>
           <FieldInput
             field={field}
             value={values[field.key]}
@@ -191,19 +182,12 @@ export function BlockForm({
       ))}
 
       <div className="flex gap-2 pt-2">
-        <button
-          type="submit"
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900"
-        >
+        <Button type="submit" variant="primary">
           {submitLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm transition hover:border-zinc-500 dark:border-zinc-700"
-        >
+        </Button>
+        <Button type="button" onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );

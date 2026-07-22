@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Banner } from '@/components/ui/banner';
+import { Card } from '@/components/ui/card';
 
 interface LoginResponse {
   requiereEnrollment: boolean;
@@ -68,50 +72,38 @@ export default function StaffLoginPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-5 rounded-xl border border-zinc-200 p-8 dark:border-zinc-800">
+    <div className="p-shell flex flex-1 items-center justify-center px-6">
+      <Card className="w-full max-w-sm space-y-5 p-8">
         <div className="space-y-1 text-center">
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
             Panel interno de Cursonube
           </h1>
-          <p className="text-sm text-zinc-500">Acceso exclusivo para staff</p>
+          <p className="text-[13px] text-[var(--p-color-text-secondary)]">
+            Acceso exclusivo para staff
+          </p>
         </div>
 
-        {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
-            {error}
-          </p>
-        )}
+        {error && <Banner>{error}</Banner>}
 
         {fase === 'credenciales' && (
           <form onSubmit={handleCredenciales} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Contraseña</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-            >
+            <TextField
+              label="Email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              label="Contraseña"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" variant="primary" disabled={loading} className="w-full">
               {loading ? 'Verificando…' : 'Continuar'}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -119,7 +111,7 @@ export default function StaffLoginPage() {
           <form onSubmit={handleCodigo} className="space-y-4">
             {qrCodeDataUrl && (
               <div className="space-y-2 text-center">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-[13px] text-[var(--p-color-text-secondary)]">
                   Escaneá este código con tu app de autenticación (Google
                   Authenticator, Authy, etc.) para activar la verificación en
                   dos pasos.
@@ -128,39 +120,31 @@ export default function StaffLoginPage() {
                 <img
                   src={qrCodeDataUrl}
                   alt="Código QR para 2FA"
-                  className="mx-auto h-40 w-40"
+                  className="mx-auto h-40 w-40 rounded-[var(--p-radius-md)] border border-[var(--p-color-border)]"
                 />
                 {claveManual && (
-                  <p className="font-mono text-xs break-all text-zinc-500">
+                  <p className="[font-family:var(--p-font-mono)] text-xs break-all text-[var(--p-color-text-secondary)]">
                     Clave manual: {claveManual}
                   </p>
                 )}
               </div>
             )}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                Código de 6 dígitos
-              </label>
-              <input
-                required
-                inputMode="numeric"
-                minLength={6}
-                maxLength={6}
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-center text-lg tracking-widest outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-            >
+            <TextField
+              label="Código de 6 dígitos"
+              required
+              inputMode="numeric"
+              minLength={6}
+              maxLength={6}
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              className="text-center text-lg tracking-widest"
+            />
+            <Button type="submit" variant="primary" disabled={loading} className="w-full">
               {loading ? 'Ingresando…' : 'Ingresar'}
-            </button>
+            </Button>
           </form>
         )}
-      </div>
-    </main>
+      </Card>
+    </div>
   );
 }

@@ -6,6 +6,9 @@ import { apiFetch, ApiError } from '@/lib/api-client';
 import { BLOCK_TYPES, type TipoBloque } from './block-registry';
 import { BlockForm } from './block-form';
 import type { Bloque, PaginaConBloques } from './page';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/select';
 
 function useApiAction() {
   const router = useRouter();
@@ -27,6 +30,9 @@ function useApiAction() {
 
   return { run, error, loading };
 }
+
+const ICON_BUTTON =
+  'rounded-[var(--p-radius-sm)] px-1.5 text-xs text-[var(--p-color-text-secondary)] transition hover:bg-[var(--p-color-surface-secondary-hover)] disabled:opacity-30';
 
 /** Resume corto del contenido de un bloque para mostrar en la lista colapsada. */
 function resumenBloque(bloque: Bloque): string {
@@ -86,47 +92,30 @@ function BloqueRow({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <Card className="p-4">
       <div className="flex items-center justify-between">
         <div>
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-            {bloque.tipo}
-          </span>
-          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <Badge tone="neutral">{bloque.tipo}</Badge>
+          <span className="ml-2 text-[13px] text-[var(--p-color-text)]">
             {resumenBloque(bloque)}
           </span>
         </div>
         <div className="flex gap-1">
-          <button
-            disabled={isFirst || loading}
-            onClick={() => mover(-1)}
-            className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 disabled:opacity-30 dark:hover:bg-zinc-700"
-          >
+          <button disabled={isFirst || loading} onClick={() => mover(-1)} className={ICON_BUTTON}>
             ↑
           </button>
-          <button
-            disabled={isLast || loading}
-            onClick={() => mover(1)}
-            className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 disabled:opacity-30 dark:hover:bg-zinc-700"
-          >
+          <button disabled={isLast || loading} onClick={() => mover(1)} className={ICON_BUTTON}>
             ↓
           </button>
-          <button
-            onClick={() => setEditando((v) => !v)}
-            className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-          >
+          <button onClick={() => setEditando((v) => !v)} className={ICON_BUTTON}>
             Editar
           </button>
-          <button
-            onClick={duplicar}
-            disabled={loading}
-            className="rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-200 disabled:opacity-30 dark:hover:bg-zinc-700"
-          >
+          <button disabled={loading} onClick={duplicar} className={ICON_BUTTON}>
             Duplicar
           </button>
           <button
             onClick={eliminar}
-            className="rounded px-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+            className="rounded-[var(--p-radius-sm)] px-1.5 text-xs text-[var(--p-color-critical-secondary)] transition hover:bg-[var(--p-color-critical-bg)]"
           >
             Eliminar
           </button>
@@ -134,7 +123,7 @@ function BloqueRow({
       </div>
 
       {error && (
-        <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-2 text-xs text-[var(--p-color-critical-secondary)]">{error}</p>
       )}
 
       {editando && (
@@ -154,7 +143,7 @@ function BloqueRow({
           />
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -165,10 +154,9 @@ function AgregarBloque({ paginaId }: { paginaId: string }) {
   if (!tipoSeleccionado) {
     return (
       <div className="flex items-center gap-2">
-        <select
+        <Select
           value={tipoSeleccionado}
           onChange={(e) => setTipoSeleccionado(e.target.value as TipoBloque)}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           <option value="">+ Agregar bloque…</option>
           {BLOCK_TYPES.map((b) => (
@@ -176,16 +164,18 @@ function AgregarBloque({ paginaId }: { paginaId: string }) {
               {b.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     );
   }
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium">Nuevo bloque: {tipoSeleccionado}</p>
+      <p className="mb-2 text-[13px] font-[550] text-[var(--p-color-text)]">
+        Nuevo bloque: {tipoSeleccionado}
+      </p>
       {error && (
-        <p className="mb-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mb-2 text-xs text-[var(--p-color-critical-secondary)]">{error}</p>
       )}
       <BlockForm
         tipo={tipoSeleccionado}
@@ -210,16 +200,12 @@ export function PaginaEditor({ pagina }: { pagina: PaginaConBloques }) {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">{pagina.titulo}</h1>
-      <span
-        className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          pagina.estado === 'Publicada'
-            ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
-            : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-        }`}
-      >
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        {pagina.titulo}
+      </h1>
+      <Badge tone={pagina.estado === 'Publicada' ? 'success' : 'neutral'} className="mt-1">
         {pagina.estado}
-      </span>
+      </Badge>
 
       <div className="mt-6 max-w-2xl space-y-3">
         {pagina.bloques

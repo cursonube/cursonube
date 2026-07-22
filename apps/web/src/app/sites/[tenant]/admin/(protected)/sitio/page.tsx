@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
 import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Pagina {
   id: string;
@@ -41,30 +43,25 @@ export default async function SitioPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Sitio</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Sitio
+      </h1>
+      <p className="mt-1 text-[13px] text-[var(--p-color-text-secondary)]">
         Elegí una página para editar sus bloques.
       </p>
 
       <ul className="mt-6 space-y-3">
         {paginas.map((pagina) => (
           <li key={pagina.id}>
-            <Link
-              href={`/admin/sitio/${pagina.id}`}
-              className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-            >
-              <p className="font-medium">
-                {TIPO_LABEL[pagina.tipo] ?? pagina.titulo}
-              </p>
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                  pagina.estado === 'Publicada'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
-                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-                }`}
-              >
-                {pagina.estado}
-              </span>
+            <Link href={`/admin/sitio/${pagina.id}`}>
+              <Card className="flex items-center justify-between p-4 transition hover:border-[var(--p-color-border-hover)]">
+                <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                  {TIPO_LABEL[pagina.tipo] ?? pagina.titulo}
+                </p>
+                <Badge tone={pagina.estado === 'Publicada' ? 'success' : 'neutral'}>
+                  {pagina.estado}
+                </Badge>
+              </Card>
             </Link>
           </li>
         ))}

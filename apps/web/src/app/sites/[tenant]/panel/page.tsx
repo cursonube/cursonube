@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { serverApiFetch } from '@/lib/api-server';
+import { Card } from '@/components/ui/card';
 
 interface MiCurso {
   inscripcionId: string;
@@ -21,10 +22,12 @@ export default async function MisCursosPage() {
   if (misCursos.length === 0) {
     return (
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Mis Cursos</h1>
-        <p className="mt-4 text-sm text-zinc-500">
+        <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+          Mis Cursos
+        </h1>
+        <p className="mt-4 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no estás inscripto en ningún curso.{' '}
-          <Link href="/cursos" className="underline">
+          <Link href="/cursos" className="text-[var(--p-color-text-link)] underline">
             Explorar cursos
           </Link>
         </p>
@@ -34,33 +37,37 @@ export default async function MisCursosPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Mis Cursos</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Mis Cursos
+      </h1>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {misCursos.map((item) => {
           const revocado = item.estado === 'Cancelada';
           const contenido = (
-            <div className="h-full rounded-lg border border-zinc-200 p-5 transition hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600">
-              <h2 className="font-medium">{item.curso.titulo}</h2>
+            <Card className="h-full p-5 transition hover:border-[var(--p-color-border-hover)]">
+              <h2 className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                {item.curso.titulo}
+              </h2>
               {revocado ? (
-                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-2 text-[13px] text-[var(--p-color-critical-secondary)]">
                   Acceso revocado — contactá a la academia para más
                   información
                 </p>
               ) : (
                 <>
-                  <div className="mt-3 h-1.5 w-full rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div className="mt-3 h-1.5 w-full rounded-[var(--p-radius-full)] bg-[var(--p-color-surface-secondary)]">
                     <div
-                      className="h-1.5 rounded-full bg-zinc-900 dark:bg-white"
+                      className="h-1.5 rounded-[var(--p-radius-full)] bg-[var(--p-color-action-primary)]"
                       style={{ width: `${item.progreso.porcentaje}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-zinc-500">
+                  <p className="mt-2 text-[12px] text-[var(--p-color-text-secondary)]">
                     {ESTADO_LABEL[item.estado] ||
                       `${item.progreso.clasesCompletadas}/${item.progreso.totalClases} clases · ${item.progreso.porcentaje}%`}
                   </p>
                 </>
               )}
-            </div>
+            </Card>
           );
 
           return revocado ? (

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import type { ClaseContenido, CursoContenido } from './page';
+import { Button } from '@/components/ui/button';
 
 const TIPO_ADJUNTO_LABEL: Record<ClaseContenido['adjuntos'][number]['tipo'], string> = {
   Pdf: 'PDF',
@@ -126,23 +127,29 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
 
   if (contenido.inscripcionEstado === 'Cancelada') {
     return (
-      <p className="text-sm text-red-600 dark:text-red-400">
+      <p className="text-[13px] text-[var(--p-color-critical-secondary)]">
         Acceso revocado — contactá a la academia para más información.
       </p>
     );
   }
 
   if (!claseActiva) {
-    return <p className="text-sm text-zinc-500">Este curso todavía no tiene clases.</p>;
+    return (
+      <p className="text-[13px] text-[var(--p-color-text-secondary)]">
+        Este curso todavía no tiene clases.
+      </p>
+    );
   }
 
   return (
     <div className="flex flex-1 flex-col gap-6 lg:flex-row">
       <aside className="order-2 lg:order-1 lg:w-72 lg:shrink-0">
-        <h1 className="mb-4 font-medium">{contenido.curso.titulo}</h1>
+        <h1 className="mb-4 text-[13px] font-[550] text-[var(--p-color-text)]">
+          {contenido.curso.titulo}
+        </h1>
         {contenido.modulos.map((modulo) => (
           <div key={modulo.id} className="mb-4">
-            <p className="mb-1 text-xs font-medium tracking-wide text-zinc-500 uppercase">
+            <p className="mb-1 text-[12px] font-[550] tracking-wide text-[var(--p-color-text-secondary)] uppercase">
               {modulo.titulo}
             </p>
             <ul className="space-y-1">
@@ -150,22 +157,22 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
                 <li key={clase.id}>
                   <button
                     onClick={() => setClaseIdSeleccionada(clase.id)}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition ${
+                    className={`flex w-full items-center gap-2 rounded-[var(--p-radius-md)] px-2 py-1.5 text-left text-[13px] transition ${
                       clase.id === claseIdSeleccionada
-                        ? 'bg-zinc-100 dark:bg-zinc-800'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        ? 'bg-[var(--p-color-surface-secondary)]'
+                        : 'hover:bg-[var(--p-color-surface-secondary-hover)]'
                     }`}
                   >
                     <span
-                      className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                      className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--p-radius-full)] text-[10px] ${
                         completadas.has(clase.id)
-                          ? 'bg-green-600 text-white'
-                          : 'border border-zinc-300 dark:border-zinc-600'
+                          ? 'bg-[var(--p-color-success-secondary)] text-white'
+                          : 'border border-[var(--p-color-border)]'
                       }`}
                     >
                       {completadas.has(clase.id) ? '✓' : ''}
                     </span>
-                    {clase.titulo}
+                    <span className="text-[var(--p-color-text)]">{clase.titulo}</span>
                   </button>
                 </li>
               ))}
@@ -175,7 +182,9 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
       </aside>
 
       <div className="order-1 flex-1 lg:order-2">
-        <h2 className="mb-3 text-lg font-medium">{claseActiva.titulo}</h2>
+        <h2 className="mb-3 text-[var(--p-text-lg)] font-[550] text-[var(--p-color-text)]">
+          {claseActiva.titulo}
+        </h2>
 
         {claseActiva.videoProvider === 'YoutubeNoListado' && claseActiva.videoExternalId && (
           <VideoPlayer
@@ -186,14 +195,14 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
         )}
 
         {claseActiva.contenidoTexto && (
-          <p className="mt-4 whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="mt-4 whitespace-pre-wrap text-[13px] text-[var(--p-color-text)]">
             {claseActiva.contenidoTexto}
           </p>
         )}
 
         {claseActiva.adjuntos.length > 0 && (
           <div className="mt-6">
-            <p className="mb-2 text-sm font-medium">Adjuntos</p>
+            <p className="mb-2 text-[13px] font-[550] text-[var(--p-color-text)]">Adjuntos</p>
             <ul className="space-y-1">
               {claseActiva.adjuntos.map((adjunto) => (
                 <li key={adjunto.id}>
@@ -201,7 +210,7 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
                     href={adjunto.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-zinc-600 underline dark:text-zinc-400"
+                    className="text-[13px] text-[var(--p-color-text-link)] underline"
                   >
                     [{TIPO_ADJUNTO_LABEL[adjunto.tipo]}] {adjunto.nombreVisible}
                   </a>
@@ -211,15 +220,16 @@ export function CursoPlayer({ contenido }: { contenido: CursoContenido }) {
           </div>
         )}
 
-        <button
+        <Button
+          variant="primary"
           onClick={() => marcarCompletada(claseActiva.id)}
           disabled={completadas.has(claseActiva.id) || marcando}
-          className="mt-6 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+          className="mt-6"
         >
           {completadas.has(claseActiva.id)
             ? 'Clase completada'
             : 'Marcar como completada'}
-        </button>
+        </Button>
       </div>
     </div>
   );

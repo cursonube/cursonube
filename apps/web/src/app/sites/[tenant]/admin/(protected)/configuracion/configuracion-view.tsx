@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 import type { EstadoMercadoPago, MiAcademia } from './page';
+import { Button, buttonClassName } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Banner } from '@/components/ui/banner';
+import { Badge } from '@/components/ui/badge';
 
 function useApiAction() {
   const router = useRouter();
@@ -30,20 +34,8 @@ function useApiAction() {
 }
 
 function Mensaje({ error, ok }: { error: string | null; ok: boolean }) {
-  if (error) {
-    return (
-      <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
-        {error}
-      </p>
-    );
-  }
-  if (ok) {
-    return (
-      <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-400">
-        Guardado correctamente
-      </p>
-    );
-  }
+  if (error) return <Banner>{error}</Banner>;
+  if (ok) return <Banner tone="success">Guardado correctamente</Banner>;
   return null;
 }
 
@@ -78,61 +70,52 @@ function BrandingForm({ miAcademia }: { miAcademia: MiAcademia }) {
     >
       <Mensaje error={error} ok={ok} />
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Nombre de la academia</label>
-        <input
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+      <TextField
+        label="Nombre de la academia"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+      />
 
       <div className="flex gap-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Color primario</label>
+          <label className="text-[13px] font-[550] text-[var(--p-color-text)]">
+            Color primario
+          </label>
           <input
             type="color"
             value={colorPrimario}
             onChange={(e) => setColorPrimario(e.target.value)}
-            className="h-9 w-16 rounded-md border border-zinc-300 dark:border-zinc-700"
+            className="h-9 w-16 rounded-[var(--p-radius-md)] border border-[var(--p-color-border)]"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Color secundario</label>
+          <label className="text-[13px] font-[550] text-[var(--p-color-text)]">
+            Color secundario
+          </label>
           <input
             type="color"
             value={colorSecundario}
             onChange={(e) => setColorSecundario(e.target.value)}
-            className="h-9 w-16 rounded-md border border-zinc-300 dark:border-zinc-700"
+            className="h-9 w-16 rounded-[var(--p-radius-md)] border border-[var(--p-color-border)]"
           />
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Logo (URL)</label>
-        <input
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+      <TextField
+        label="Logo (URL)"
+        value={logoUrl}
+        onChange={(e) => setLogoUrl(e.target.value)}
+      />
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Imagen principal (URL)</label>
-        <input
-          value={imagenPrincipalUrl}
-          onChange={(e) => setImagenPrincipalUrl(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+      <TextField
+        label="Imagen principal (URL)"
+        value={imagenPrincipalUrl}
+        onChange={(e) => setImagenPrincipalUrl(e.target.value)}
+      />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-      >
+      <Button type="submit" variant="primary" disabled={loading}>
         {loading ? 'Guardando…' : 'Guardar branding'}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -144,10 +127,10 @@ function SubdominioForm({ miAcademia }: { miAcademia: MiAcademia }) {
   if (!miAcademia.puedeCambiarSubdominio) {
     return (
       <div className="max-w-md">
-        <p className="text-sm">
+        <p className="text-[13px] text-[var(--p-color-text)]">
           Subdominio actual: <strong>{miAcademia.subdominio}</strong>
         </p>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="mt-1 text-[12px] text-[var(--p-color-text-secondary)]">
           Ya no se puede cambiar — la ventana de 48hs desde la creación de la
           academia venció (Documento 6, decisión T1).
         </p>
@@ -169,23 +152,19 @@ function SubdominioForm({ miAcademia }: { miAcademia: MiAcademia }) {
       className="max-w-md space-y-3"
     >
       <Mensaje error={error} ok={ok} />
-      <p className="text-xs text-zinc-500">
+      <p className="text-[12px] text-[var(--p-color-text-secondary)]">
         Cambiable solo dentro de las primeras 48hs desde la creación de tu
         academia.
       </p>
       <div className="flex gap-2">
-        <input
+        <TextField
           value={subdominio}
           onChange={(e) => setSubdominio(e.target.value)}
-          className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm transition hover:border-zinc-500 disabled:opacity-50 dark:border-zinc-700"
-        >
+        <Button type="submit" disabled={loading}>
           Guardar
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -209,25 +188,21 @@ function DominioPropioForm({ miAcademia }: { miAcademia: MiAcademia }) {
       className="max-w-md space-y-3"
     >
       <Mensaje error={error} ok={ok} />
-      <p className="text-xs text-zinc-500">
+      <p className="text-[12px] text-[var(--p-color-text-secondary)]">
         La verificación de propiedad y el certificado SSL automático dependen
         del proveedor de hosting (Documento 14) — todavía no desplegado. Por
         ahora el valor se guarda sin verificar.
       </p>
       <div className="flex gap-2">
-        <input
+        <TextField
           placeholder="miacademia.com"
           value={dominioPropio}
           onChange={(e) => setDominioPropio(e.target.value)}
-          className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm transition hover:border-zinc-500 disabled:opacity-50 dark:border-zinc-700"
-        >
+        <Button type="submit" disabled={loading}>
           Guardar
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -236,18 +211,12 @@ function DominioPropioForm({ miAcademia }: { miAcademia: MiAcademia }) {
 function MercadoPagoSection({ estadoMp }: { estadoMp: EstadoMercadoPago }) {
   return (
     <div className="max-w-md">
-      <p className="text-sm">
-        Estado:{' '}
-        <span
-          className={
-            estadoMp.conectada
-              ? 'font-medium text-green-700 dark:text-green-400'
-              : 'font-medium text-zinc-500'
-          }
-        >
+      <div className="flex items-center gap-2 text-[13px] text-[var(--p-color-text)]">
+        <span>Estado:</span>
+        <Badge tone={estadoMp.conectada ? 'success' : 'neutral'}>
           {estadoMp.conectada ? 'Conectada' : 'Sin conectar'}
-        </span>
-      </p>
+        </Badge>
+      </div>
       {!estadoMp.conectada && (
         // No es una ruta de Next.js — es un endpoint del proxy que responde
         // con un 302 real hacia Mercado Pago (ver cuenta-pago-creador.controller.ts).
@@ -256,7 +225,7 @@ function MercadoPagoSection({ estadoMp }: { estadoMp: EstadoMercadoPago }) {
         // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a
           href="/api/backend/pagos/mercado-pago/conectar"
-          className="mt-3 inline-block rounded-md border border-zinc-300 px-3 py-1.5 text-sm transition hover:border-zinc-500 dark:border-zinc-700"
+          className={`mt-3 inline-block ${buttonClassName('primary')}`}
         >
           Conectar Mercado Pago
         </a>
@@ -274,24 +243,26 @@ export function ConfiguracionView({
 }) {
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Configuración</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Configuración
+      </h1>
 
-      <h2 className="mt-6 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-6 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Branding
       </h2>
       <BrandingForm miAcademia={miAcademia} />
 
-      <h2 className="mt-8 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Subdominio
       </h2>
       <SubdominioForm miAcademia={miAcademia} />
 
-      <h2 className="mt-8 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Dominio propio
       </h2>
       <DominioPropioForm miAcademia={miAcademia} />
 
-      <h2 className="mt-8 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Mercado Pago
       </h2>
       <MercadoPagoSection estadoMp={estadoMp} />

@@ -32,29 +32,31 @@ export default async function ComprasPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Mis Compras</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Mis Compras
+      </h1>
 
       {pagos.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no tenés compras — los cursos gratuitos no generan un pago.
         </p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead className="text-zinc-500">
+        <table className="mt-6 w-full text-left text-[13px]">
+          <thead className="text-[var(--p-color-text-secondary)]">
             <tr>
-              <th className="pb-2 font-medium">Curso</th>
-              <th className="pb-2 font-medium">Monto</th>
-              <th className="pb-2 font-medium">Estado</th>
-              <th className="pb-2 font-medium">Fecha</th>
+              <th className="pb-2 font-[550]">Curso</th>
+              <th className="pb-2 font-[550]">Monto</th>
+              <th className="pb-2 font-[550]">Estado</th>
+              <th className="pb-2 font-[550]">Fecha</th>
             </tr>
           </thead>
           <tbody>
             {pagos.map((pago) => (
-              <tr key={pago.id} className="border-t border-zinc-100 dark:border-zinc-800">
+              <tr key={pago.id} className="border-t border-[var(--p-color-border)]">
                 <td className="py-2">{pago.inscripcion.curso.titulo}</td>
                 <td className="py-2">{formatMonto(pago.montoCentavos, pago.moneda)}</td>
                 <td className="py-2">{ESTADO_LABEL[pago.estado]}</td>
-                <td className="py-2 text-zinc-500">
+                <td className="py-2 text-[var(--p-color-text-secondary)]">
                   {new Date(pago.createdAt).toLocaleDateString('es-AR')}
                 </td>
               </tr>

@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
 import { serverApiFetch } from '@/lib/api-server';
 import { BloqueadoPorImpago } from '@/components/bloqueado-por-impago';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Inscripcion {
   inscripcionId: string;
@@ -19,10 +21,10 @@ interface Alumno {
   inscripciones: Inscripcion[];
 }
 
-const ESTADO_BADGE: Record<Inscripcion['estado'], string> = {
-  Activa: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
-  Completada: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',
-  Cancelada: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400',
+const ESTADO_TONE: Record<Inscripcion['estado'], 'info' | 'success' | 'critical'> = {
+  Activa: 'info',
+  Completada: 'success',
+  Cancelada: 'critical',
 };
 
 /** Documento 10, sección 3 — "Alumnos": listado global de alumnos con su progreso. */
@@ -39,37 +41,37 @@ export default async function AlumnosPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Alumnos</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Alumnos
+      </h1>
 
       {alumnos.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-500">
+        <p className="mt-6 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no tenés alumnos inscriptos.
         </p>
       ) : (
         <ul className="mt-6 space-y-3">
           {alumnos.map((alumno) => (
             <li key={alumno.id}>
-              <Link
-                href={`/admin/alumnos/${alumno.id}`}
-                className="block rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-              >
-                <div className="flex items-center justify-between">
+              <Link href={`/admin/alumnos/${alumno.id}`}>
+                <Card className="p-4 transition hover:border-[var(--p-color-border-hover)]">
                   <div>
-                    <p className="font-medium">{alumno.nombre}</p>
-                    <p className="text-xs text-zinc-500">{alumno.email}</p>
+                    <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                      {alumno.nombre}
+                    </p>
+                    <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+                      {alumno.email}
+                    </p>
                   </div>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {alumno.inscripciones.map((inscripcion) => (
-                    <span
-                      key={inscripcion.inscripcionId}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${ESTADO_BADGE[inscripcion.estado]}`}
-                    >
-                      {inscripcion.curso.titulo} · {inscripcion.clasesCompletadas}/
-                      {inscripcion.totalClases}
-                    </span>
-                  ))}
-                </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {alumno.inscripciones.map((inscripcion) => (
+                      <Badge key={inscripcion.inscripcionId} tone={ESTADO_TONE[inscripcion.estado]}>
+                        {inscripcion.curso.titulo} · {inscripcion.clasesCompletadas}/
+                        {inscripcion.totalClases}
+                      </Badge>
+                    ))}
+                  </div>
+                </Card>
               </Link>
             </li>
           ))}

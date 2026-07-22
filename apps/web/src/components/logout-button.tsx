@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
 
 export function LogoutButton({
   logoutPath,
@@ -19,11 +20,8 @@ export function LogoutButton({
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
-    >
+    <Button variant="plain" onClick={handleLogout} className="!justify-start !px-0">
       Cerrar sesión
-    </button>
+    </Button>
   );
 }

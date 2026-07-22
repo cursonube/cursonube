@@ -6,7 +6,8 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "web", "exec", "next", "dev"],
       "port": 3001,
-      "autoPort": true
+      "autoPort": true,
+      "env": { "NEXT_TELEMETRY_DISABLED": "1" }
     }
   ]
 }

@@ -1,4 +1,6 @@
 import { serverApiFetch } from '@/lib/api-server';
+import { Card } from '@/components/ui/card';
+import { buttonClassName } from '@/components/ui/button';
 
 interface Certificado {
   id: string;
@@ -17,34 +19,37 @@ export default async function CertificadosPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Certificados</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Certificados
+      </h1>
 
       {certificados.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-[13px] text-[var(--p-color-text-secondary)]">
           Todavía no obtuviste ningún certificado — completá un curso al 100%
           para generar el tuyo.
         </p>
       ) : (
         <ul className="mt-6 space-y-3">
           {certificados.map((certificado) => (
-            <li
-              key={certificado.id}
-              className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
-            >
-              <div>
-                <p className="font-medium">{certificado.inscripcion.curso.titulo}</p>
-                <p className="text-xs text-zinc-500">
-                  Emitido el{' '}
-                  {new Date(certificado.fechaEmision).toLocaleDateString('es-AR')}{' '}
-                  · Código {certificado.codigoVerificacion}
-                </p>
-              </div>
-              <a
-                href={`/api/backend/certificados/${certificado.id}/descargar`}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm transition hover:border-zinc-500 dark:border-zinc-700"
-              >
-                Descargar PDF
-              </a>
+            <li key={certificado.id}>
+              <Card className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-[13px] font-[550] text-[var(--p-color-text)]">
+                    {certificado.inscripcion.curso.titulo}
+                  </p>
+                  <p className="text-[12px] text-[var(--p-color-text-secondary)]">
+                    Emitido el{' '}
+                    {new Date(certificado.fechaEmision).toLocaleDateString('es-AR')}{' '}
+                    · Código {certificado.codigoVerificacion}
+                  </p>
+                </div>
+                <a
+                  href={`/api/backend/certificados/${certificado.id}/descargar`}
+                  className={buttonClassName('secondary')}
+                >
+                  Descargar PDF
+                </a>
+              </Card>
             </li>
           ))}
         </ul>

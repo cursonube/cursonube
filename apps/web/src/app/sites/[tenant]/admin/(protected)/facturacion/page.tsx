@@ -35,7 +35,7 @@ export default async function FacturacionPage() {
   } catch (err) {
     if (err instanceof ApiError && err.status === 403) {
       return (
-        <p className="text-sm text-zinc-500">
+        <p className="text-[13px] text-[var(--p-color-text-secondary)]">
           Solo el Owner de la academia puede ver esta sección.
         </p>
       );

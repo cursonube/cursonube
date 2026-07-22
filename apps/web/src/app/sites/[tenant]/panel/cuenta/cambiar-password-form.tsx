@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { apiFetch, ApiError } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Banner } from '@/components/ui/banner';
 
 export function CambiarPasswordForm() {
   const [passwordActual, setPasswordActual] = useState('');
@@ -36,53 +39,33 @@ export function CambiarPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-4 max-w-sm space-y-4">
       {mensaje && (
-        <p
-          className={`rounded-md px-3 py-2 text-sm ${
-            mensaje.tipo === 'ok'
-              ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
-              : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400'
-          }`}
-        >
+        <Banner tone={mensaje.tipo === 'ok' ? 'success' : 'critical'}>
           {mensaje.texto}
-        </p>
+        </Banner>
       )}
 
-      <div className="space-y-1.5">
-        <label htmlFor="passwordActual" className="text-sm font-medium">
-          Contraseña actual
-        </label>
-        <input
-          id="passwordActual"
-          type="password"
-          required
-          value={passwordActual}
-          onChange={(e) => setPasswordActual(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+      <TextField
+        label="Contraseña actual"
+        id="passwordActual"
+        type="password"
+        required
+        value={passwordActual}
+        onChange={(e) => setPasswordActual(e.target.value)}
+      />
 
-      <div className="space-y-1.5">
-        <label htmlFor="passwordNueva" className="text-sm font-medium">
-          Contraseña nueva
-        </label>
-        <input
-          id="passwordNueva"
-          type="password"
-          required
-          minLength={8}
-          value={passwordNueva}
-          onChange={(e) => setPasswordNueva(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-      </div>
+      <TextField
+        label="Contraseña nueva"
+        id="passwordNueva"
+        type="password"
+        required
+        minLength={8}
+        value={passwordNueva}
+        onChange={(e) => setPasswordNueva(e.target.value)}
+      />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
-      >
+      <Button type="submit" variant="primary" disabled={loading}>
         {loading ? 'Actualizando…' : 'Cambiar contraseña'}
-      </button>
+      </Button>
     </form>
   );
 }

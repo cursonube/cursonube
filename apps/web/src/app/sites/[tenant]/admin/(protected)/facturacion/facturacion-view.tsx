@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api-client';
 import type { EstadoBilling, Plan } from './page';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
+import { Banner } from '@/components/ui/banner';
 
 function formatPrecio(plan: Plan) {
   if (plan.precioMensualCentavos == null) return 'Gratis';
@@ -55,33 +59,25 @@ function CambiarPlanForm({
   }
 
   return (
-    <div className="mt-3 space-y-2 rounded-md bg-zinc-50 p-3 dark:bg-zinc-900">
-      {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-400">
-          {error}
-        </p>
-      )}
+    <div className="mt-3 space-y-2 rounded-[var(--p-radius-md)] bg-[var(--p-color-surface-secondary)] p-3">
+      {error && <Banner className="text-xs">{error}</Banner>}
       {plan.slug !== 'Free' && (
-        <div className="space-y-1">
-          <label className="text-xs font-medium">
-            Email de facturación (Mercado Pago)
-          </label>
-          <input
-            type="email"
-            required
-            value={payerEmail}
-            onChange={(e) => setPayerEmail(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-2 py-1 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
+        <TextField
+          label="Email de facturación (Mercado Pago)"
+          type="email"
+          required
+          value={payerEmail}
+          onChange={(e) => setPayerEmail(e.target.value)}
+        />
       )}
-      <button
+      <Button
+        variant="primary"
         onClick={confirmar}
         disabled={loading || (plan.slug !== 'Free' && !payerEmail)}
-        className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+        className="w-full"
       >
         {loading ? 'Procesando…' : `Confirmar cambio a ${plan.slug}`}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -99,24 +95,26 @@ export function FacturacionView({
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Plan y Facturación</h1>
+      <h1 className="text-[length:var(--p-text-xl)] font-[650] tracking-tight text-[var(--p-color-text)]">
+        Plan y Facturación
+      </h1>
 
       {estado.academiaEstado === 'Suspendida' && (
-        <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-400">
+        <Banner className="mt-4">
           El panel de gestión está bloqueado por falta de pago. Regularizá tu
           suscripción para recuperar el acceso completo — esta sección sigue
           disponible mientras tanto.
-        </p>
+        </Banner>
       )}
 
-      <div className="mt-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <p className="text-sm text-zinc-500">Plan actual</p>
-        <p className="text-lg font-medium">
+      <Card className="mt-6 p-4">
+        <p className="text-[13px] text-[var(--p-color-text-secondary)]">Plan actual</p>
+        <p className="text-[var(--p-text-lg)] font-[550] text-[var(--p-color-text)]">
           {estado.plan.slug} — {formatPrecio(estado.plan)}
           {estado.plan.precioMensualCentavos != null && '/mes'}
         </p>
         {estado.suscripcion && (
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-[12px] text-[var(--p-color-text-secondary)]">
             Suscripción: {estado.suscripcion.estado}
             {estado.suscripcion.fechaProximaFacturacion &&
               ` · Próxima facturación: ${new Date(
@@ -124,29 +122,25 @@ export function FacturacionView({
               ).toLocaleDateString('es-AR')}`}
           </p>
         )}
-      </div>
+      </Card>
 
-      <h2 className="mt-8 mb-3 text-sm font-medium text-zinc-500 uppercase tracking-wide">
+      <h2 className="mt-8 mb-3 text-[12px] font-[550] text-[var(--p-color-text-secondary)] uppercase tracking-wide">
         Planes disponibles
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {planesDisponibles.map((plan) => {
           const esActual = plan.slug === estado.plan.slug;
           return (
-            <div
+            <Card
               key={plan.id}
-              className={`rounded-lg border p-4 ${
-                esActual
-                  ? 'border-zinc-900 dark:border-white'
-                  : 'border-zinc-200 dark:border-zinc-800'
-              }`}
+              className={`p-4 ${esActual ? 'border-[var(--p-color-action-primary)]' : ''}`}
             >
-              <p className="font-medium">{plan.slug}</p>
-              <p className="text-sm text-zinc-500">
+              <p className="text-[13px] font-[550] text-[var(--p-color-text)]">{plan.slug}</p>
+              <p className="text-[13px] text-[var(--p-color-text-secondary)]">
                 {formatPrecio(plan)}
                 {plan.precioMensualCentavos != null && '/mes'}
               </p>
-              <ul className="mt-3 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+              <ul className="mt-3 space-y-1 text-[12px] text-[var(--p-color-text-secondary)]">
                 <li>{plan.maxProfesoresEditores} profesores/editores</li>
                 <li>{plan.maxAlumnos ?? 'Ilimitados'} alumnos</li>
                 <li>{plan.maxCursos ?? 'Ilimitados'} cursos</li>
@@ -154,7 +148,7 @@ export function FacturacionView({
               </ul>
 
               {esActual ? (
-                <p className="mt-4 text-xs font-medium text-zinc-500">
+                <p className="mt-4 text-[12px] font-[550] text-[var(--p-color-text-secondary)]">
                   Plan actual
                 </p>
               ) : planEnEdicion === plan.id ? (
@@ -170,14 +164,11 @@ export function FacturacionView({
                   }}
                 />
               ) : (
-                <button
-                  onClick={() => setPlanEnEdicion(plan.id)}
-                  className="mt-4 w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm transition hover:border-zinc-500 dark:border-zinc-700"
-                >
+                <Button onClick={() => setPlanEnEdicion(plan.id)} className="mt-4 w-full">
                   Cambiar a este plan
-                </button>
+                </Button>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>
