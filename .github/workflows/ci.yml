@@ -17,9 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Sin "version" acá — pnpm/action-setup la lee sola del campo
+      # "packageManager" de package.json (pnpm@11.13.1). Especificarla en los
+      # dos lados a la vez hace que la action falle con ERR_PNPM_BAD_PM_VERSION.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11
 
       - uses: actions/setup-node@v4
         with:
